@@ -1,7 +1,8 @@
-import 'package:diw/main.dart';
 import 'package:diw/models/item.dart';
 import 'package:diw/pages/home/home_page.dart';
-import 'package:diw/providers.dart';
+import 'package:diw/providers/item_notifier.dart';
+import 'package:diw/providers/person_notifier.dart';
+import 'package:diw/providers/shopping_list_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -11,7 +12,7 @@ class ShoppingListPageItemListView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final itemIds = ref.watch(shoppingListProvider(shoppingListId).select((value) => value.value?.itemIds ?? []));
+    final itemIds = ref.watch(ShoppingListProvider(shoppingListId).select((value) => value.value?.itemIds ?? []));
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -84,7 +85,7 @@ class ShoppingListPageListViewItemEntry extends ConsumerWidget {
           if (entry.weight != 0)
             InkWell(
               onTap: () {
-                getIt<ItemService>().decreaseWeight(item, person);
+                ref.read(itemNotifierProvider.notifier).decreaseWeight(item, person);
               },
               child: CircleAvatar(
                 child: Text(entry.weight.toString()),
@@ -93,7 +94,7 @@ class ShoppingListPageListViewItemEntry extends ConsumerWidget {
           PersonAvatar(
             person: person,
             onTap: () {
-              getIt<ItemService>().increaseWeight(item, person);
+                ref.read(itemNotifierProvider.notifier).increaseWeight(item, person);
             },
           ),
         ],

@@ -2,8 +2,9 @@ import 'dart:typed_data';
 
 import 'package:diw/main.dart';
 import 'package:diw/models/person.dart';
-import 'package:diw/models/shopping_list.dart';
 import 'package:diw/providers.dart';
+import 'package:diw/providers/person_notifier.dart';
+import 'package:diw/providers/shopping_list_notifier.dart';
 import 'package:diw/utils.dart';
 import 'package:file_picker/_internal/file_picker_web.dart';
 import 'package:file_picker/file_picker.dart';
@@ -109,7 +110,7 @@ class ShoppingListCreatorDialog extends ConsumerWidget {
     logger.d(ref.read(shoppingListCreatorPersonSelectorSelectedPersonProvider));
     await showProcessIndicatorWhileWaitingOnFuture(
         context,
-        getIt<ShoppingListService>().create(
+        ref.read(shoppingListNotifierProvider.notifier).create(
           title: titleController.value.text,
           date: DateFormat("dd/MM/yyyy").parse(dateController.value.text),
           picture: ref.read(shoppingListCreatorImageReferenceProvider)!.fullPath,

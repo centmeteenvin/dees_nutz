@@ -1,8 +1,9 @@
 import 'package:diw/main.dart';
-import 'package:diw/models/shopping_list.dart';
 import 'package:diw/pages/home/home_page.dart';
 import 'package:diw/pages/shopping_list/shopping_list_item.dart';
 import 'package:diw/providers.dart';
+import 'package:diw/providers/person_notifier.dart';
+import 'package:diw/providers/shopping_list_notifier.dart';
 import 'package:diw/widgets/item_creator.dart';
 import 'package:diw/widgets/person_selector.dart';
 import 'package:flutter/material.dart';
@@ -139,7 +140,7 @@ class ShoppingListPageBodyPeople extends ConsumerWidget {
     final person = await PersonSelectorDialog.show(context, ref, title: "Select a Person");
     if (person == null) return;
     final shoppingList = await ref.read(shoppingListProvider(id).future);
-    getIt<ShoppingListService>().addPersonToShoppingList(shoppingList, person);
+    ref.read(shoppingListNotifierProvider.notifier).addPersonToShoppingList(shoppingList, person);
   }
 }
 
@@ -179,7 +180,7 @@ class ShoppingListPageBodyPeopleItem extends ConsumerWidget {
   removePerson(BuildContext context, WidgetRef ref) async {
     final person = await ref.read(personProvider(participantId).future);
     final shoppingList = await ref.read(shoppingListProvider(id).future);
-    getIt<ShoppingListService>().removePersonFromList(shoppingList, person);
+    ref.read(shoppingListNotifierProvider.notifier).removePersonFromList(shoppingList, person);
   }
 }
 
@@ -193,7 +194,7 @@ class ShoppingListPageFloatingActionButton extends ConsumerWidget {
         ref.watch(shoppingListProvider(id).select((value) => value.value?.participantEntries.map((entry) => entry.participantId).toList() ?? []));
     return FloatingActionButton(
       onPressed: () async {
-        logger.i(await ItemCreatorDialog.show(context, shoppingListId: id, participantIds: participantIds));
+        logger.i(await ItemCreatorDialog.show(context, ref, shoppingListId: id, participantIds: participantIds));
       },
       child: const Icon(Icons.add),
     );

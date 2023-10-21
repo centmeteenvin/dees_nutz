@@ -1,6 +1,5 @@
-import 'package:diw/main.dart';
 import 'package:diw/models/item.dart';
-import 'package:diw/models/shopping_list.dart';
+import 'package:diw/providers/shopping_list_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
@@ -73,11 +72,11 @@ class ItemCreatorDialog extends ConsumerWidget {
 
 
   //Function handles db logic
-  static Future<Item?> show(BuildContext context, {required String shoppingListId, required List<String> participantIds}) async {
+  static Future<Item?> show(BuildContext context, WidgetRef ref, {required String shoppingListId, required List<String> participantIds}) async {
     final item = await showDialog<Item>(context: context, builder: (context) => ItemCreatorDialog(shoppingListId: shoppingListId, participantIds: participantIds,));
     if (item == null) return null;
-    final shoppingList = await getIt<ShoppingListService>().getShoppingList(shoppingListId).first;
-    await getIt<ShoppingListService>().addItemToShoppingList(shoppingList, item);
+    final shoppingList = await ref.read(shoppingListProvider(shoppingListId).future);
+    await ref.read(shoppingListNotifierProvider.notifier).addItemToShoppingList(shoppingList, item);
     return item;
   }
 }

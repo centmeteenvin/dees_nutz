@@ -1,6 +1,6 @@
 import 'package:diw/models/person.dart';
 import 'package:diw/pages/home/home_page.dart';
-import 'package:diw/providers.dart';
+import 'package:diw/providers/person_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
