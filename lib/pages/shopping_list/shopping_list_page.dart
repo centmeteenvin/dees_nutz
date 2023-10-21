@@ -8,6 +8,8 @@ import 'package:diw/widgets/item_creator.dart';
 import 'package:diw/widgets/person_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:collection/collection.dart';
+import 'package:intl/intl.dart';
 
 class ShoppingListPage extends ConsumerWidget {
   final String id;
@@ -140,6 +142,12 @@ class ShoppingListPageBodyPeople extends ConsumerWidget {
     final person = await PersonSelectorDialog.show(context, ref, title: "Select a Person");
     if (person == null) return;
     final shoppingList = await ref.read(shoppingListProvider(id).future);
+    if (shoppingList.participantEntries.any((entry) => entry.participantId == person.id)) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("This person was already participating.")));
+      }
+      return;
+    }
     ref.read(shoppingListNotifierProvider.notifier).addPersonToShoppingList(shoppingList, person);
   }
 }
@@ -159,6 +167,8 @@ class ShoppingListPageBodyPeopleItem extends ConsumerWidget {
       data: (person) => Row(
         children: [
           PersonAvatar(person: person),
+          const SizedBox(width: 5),
+          ShoppingListPageBodyPeopleItemCost(id,participantId: participantId),
           const Spacer(),
           Expanded(
               child: Text(
@@ -180,7 +190,29 @@ class ShoppingListPageBodyPeopleItem extends ConsumerWidget {
   removePerson(BuildContext context, WidgetRef ref) async {
     final person = await ref.read(personProvider(participantId).future);
     final shoppingList = await ref.read(shoppingListProvider(id).future);
+    if (shoppingList.participantEntries.length <= 1) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("At least one Person must be associated with the shoppingList")));
+      }
+      return;
+    }
     ref.read(shoppingListNotifierProvider.notifier).removePersonFromList(shoppingList, person);
+  }
+}
+
+
+class ShoppingListPageBodyPeopleItemCost extends ConsumerWidget {
+  final String shoppingListId;
+  final String participantId;
+  const ShoppingListPageBodyPeopleItemCost(this.shoppingListId, {super.key, required this.participantId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final totalCost = ref.watch(shoppingListProvider(shoppingListId).select((value) => value.value?.total ?? 0));
+    final personCost = ref.watch(shoppingListProvider(shoppingListId).select((value) {
+      return value.value?.participantEntries.firstWhereOrNull((entry) => entry.participantId == participantId)?.currentCost ?? 0;
+    }));
+    return Text("${NumberFormat("####.00").format(personCost)}/$totalCost EUR -> ${NumberFormat("##.0%").format(personCost/totalCost)}");
   }
 }
 

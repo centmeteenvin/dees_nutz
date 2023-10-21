@@ -147,14 +147,15 @@ class __$$ItemImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$ItemImpl implements _Item {
+class _$ItemImpl extends _Item {
   const _$ItemImpl(
       {required this.id,
       required this.name,
       required this.price,
       required this.shoppingListId,
       required final List<ItemParticipantEntry> participantEntries})
-      : _participantEntries = participantEntries;
+      : _participantEntries = participantEntries,
+        super._();
 
   factory _$ItemImpl.fromJson(Map<String, dynamic> json) =>
       _$$ItemImplFromJson(json);
@@ -214,7 +215,7 @@ class _$ItemImpl implements _Item {
   }
 }
 
-abstract class _Item implements Item {
+abstract class _Item extends Item {
   const factory _Item(
           {required final String id,
           required final String name,
@@ -222,6 +223,7 @@ abstract class _Item implements Item {
           required final String shoppingListId,
           required final List<ItemParticipantEntry> participantEntries}) =
       _$ItemImpl;
+  const _Item._() : super._();
 
   factory _Item.fromJson(Map<String, dynamic> json) = _$ItemImpl.fromJson;
 

@@ -24,7 +24,7 @@ class ShoppingListPageItemListView extends ConsumerWidget {
             child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                children: itemIds.map((itemId) => Flexible(child: ShoppingListPageItemListViewItem(itemId))).toList(),
+                children: itemIds.expand((itemId) => [Flexible(child: ShoppingListPageItemListViewItem(itemId)), const Divider()]).toList(),
               ),
             ),
           ),
@@ -43,25 +43,46 @@ class ShoppingListPageItemListViewItem extends ConsumerWidget {
     final asyncItem = ref.watch(itemProvider(itemId));
     return asyncItem.maybeWhen(
       orElse: () => Container(),
-      data: (item) => ConstrainedBox(
-        constraints: const BoxConstraints(maxHeight: 80),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            Expanded(
-                child: Text(
-              item.name,
-              style: Theme.of(context).textTheme.titleMedium,
-            )),
-            Expanded(child: Text("${item.price} €", textAlign: TextAlign.center)),
-            Expanded(
-                child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: item.participantEntries.map((entry) => ShoppingListPageListViewItemEntry(item: item, participantId: entry.participantId)).toList(),
-            )),
-          ],
-        ),
-      ),
+      data: (item) {
+        final List<Widget> widgets = [
+          const Flexible(
+              child: Column(
+            children: [
+              CircleAvatar(
+                backgroundColor: Colors.transparent,
+                child: Icon(Icons.add),
+              ),
+              CircleAvatar(
+                backgroundColor: Colors.transparent,
+                child: Icon(Icons.remove),
+              )
+            ],
+          ))
+        ];
+        widgets.addAll(item.participantEntries.map((entry) => ShoppingListPageListViewItemEntry(item: item, participantId: entry.participantId)));
+        // widgets.insert(
+        //     0,
+        //     );
+        return ConstrainedBox(
+          constraints: const BoxConstraints(maxHeight: 80),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Expanded(
+                  child: Text(
+                item.name,
+                style: Theme.of(context).textTheme.titleMedium,
+              )),
+              Expanded(child: Text("${item.price} €", textAlign: TextAlign.center)),
+              Expanded(
+                  child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: widgets,
+              )),
+            ],
+          ),
+        );
+      },
     );
   }
 }
@@ -82,21 +103,23 @@ class ShoppingListPageListViewItemEntry extends ConsumerWidget {
       child: Column(
         // mainAxisSize: MainAxisSize.min,
         children: [
-          if (entry.weight != 0)
+          PersonAvatar(
+            person: person,
+            onTap: () {
+              ref.read(itemNotifierProvider.notifier).increaseWeight(item, person);
+            },
+          ),
+          // if (entry.weight != 0)
             InkWell(
               onTap: () {
-                ref.read(itemNotifierProvider.notifier).decreaseWeight(item, person);
+                if (entry.weight > 0) {
+                  ref.read(itemNotifierProvider.notifier).decreaseWeight(item, person);
+                }
               },
               child: CircleAvatar(
                 child: Text(entry.weight.toString()),
               ),
             ),
-          PersonAvatar(
-            person: person,
-            onTap: () {
-                ref.read(itemNotifierProvider.notifier).increaseWeight(item, person);
-            },
-          ),
         ],
       ),
     );

@@ -52,6 +52,8 @@ class ItemNotifier extends _$ItemNotifier {
     final originalEntry = entryList[entryIndex];
     entryList[entryIndex] = originalEntry.copyWith(weight: originalEntry.weight + 1);
     await collectionRef.doc(item.id).set(item.copyWith(participantEntries: entryList).toJson());
+    final shoppingList = await ref.read(shoppingListProvider(item.shoppingListId).future);
+    return await ref.read(shoppingListNotifierProvider.notifier).recalculate(shoppingList);
   }
 
   Future<void> decreaseWeight(Item item, Person person) async {
@@ -60,7 +62,7 @@ class ItemNotifier extends _$ItemNotifier {
     final originalEntry = entryList[entryIndex];
     entryList[entryIndex] = originalEntry.copyWith(weight: originalEntry.weight - 1);
     await collectionRef.doc(item.id).set(item.copyWith(participantEntries: entryList).toJson());
-    final shoppingList = ref.read(shoppingListProvider(item.shoppingListId));
-    // return await getIt<ShoppingListService>().recalculate(shoppingList, person); TODO
+    final shoppingList = await ref.read(shoppingListProvider(item.shoppingListId).future);
+    return await ref.read(shoppingListNotifierProvider.notifier).recalculate(shoppingList);
   }
 }

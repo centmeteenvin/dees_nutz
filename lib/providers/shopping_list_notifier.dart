@@ -69,7 +69,7 @@ class ShoppingListNotifier extends _$ShoppingListNotifier {
     ));
 
     await ref.read(personNotifierProvider.notifier).addShoppingList(person, shoppingList.id);
-    return await collectionRef.doc(shoppingList.id).set(shoppingList.copyWith(participantEntries: participantList).toJson());
+    return await recalculate(shoppingList.copyWith(participantEntries: participantList));
   }
 
   void removePersonFromList(ShoppingList shoppingList, Person person) async {
@@ -83,7 +83,7 @@ class ShoppingListNotifier extends _$ShoppingListNotifier {
         return itemNotifier.removePerson(item, person);
       },
     ));
-    return await collectionRef.doc(shoppingList.id).set(shoppingList.copyWith(participantEntries: participantList).toJson());
+    return await recalculate(shoppingList.copyWith(participantEntries: participantList));
   }
 
   Future<void> addItemToShoppingList(ShoppingList shoppingList, Item item) async {
@@ -96,5 +96,27 @@ class ShoppingListNotifier extends _$ShoppingListNotifier {
     await collectionRef.doc(shoppingList.id).set(shoppingList.copyWith(itemIds: itemList, total: shoppingList.total + item.price).toJson());
   }
 
-  Future<void> recalculate(Stream<ShoppingList> shoppingList, Person person) async {}
+  Future<void> recalculate(ShoppingList shoppingList) async {
+    ShoppingList copiedShoppinglist = shoppingList.copyWith();
+    final participantIds = copiedShoppinglist.participantEntries.map((entry) => entry.participantId);
+    for (var personId in participantIds) {
+      final person = await ref.read(personProvider(personId).future);
+      copiedShoppinglist = await _recalculatePerson(copiedShoppinglist, person);
+    }
+    return await collectionRef.doc(shoppingList.id).set(copiedShoppinglist.toJson());
+  }
+
+  Future<ShoppingList> _recalculatePerson(ShoppingList shoppingList, Person person) async {
+    double personCost = 0;
+    for (final itemId in shoppingList.itemIds) {
+      final item = await ref.read(itemProvider(itemId).future);
+      personCost += item.calculateParticipantCost(person);
+    }
+    final participantEntries = List.of(shoppingList.participantEntries);
+    final personEntryIndex = participantEntries.indexWhere((entry) => entry.participantId == person.id);
+    final personEntry = participantEntries[personEntryIndex];
+    participantEntries[personEntryIndex] = personEntry.copyWith(currentCost: personCost);
+    logger.d(personCost);
+    return shoppingList.copyWith(participantEntries: participantEntries);
+  }
 }
