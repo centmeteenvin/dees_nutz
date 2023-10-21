@@ -121,8 +121,10 @@ class ShoppingListCreatorDialog extends ConsumerWidget {
 }
 
 final shoppingListCreatorPersonSelectorSelectedPersonProvider = StateProvider<List<Person>>((ref) {
-  final currentPerson = ref.watch(currentSelectedPersonProvider);
-  return currentPerson == null ? [] : [currentPerson];
+  final currentPersonId = ref.read(currentSelectedPersonProviderId);
+  if (currentPersonId == null) return [];
+  return ref.watch(personProvider(currentPersonId)).hasValue ? [ref.read(personProvider(currentPersonId)).value!] : [];
+
 });
 
 class ShoppingListCreatorPersonSelector extends ConsumerWidget {

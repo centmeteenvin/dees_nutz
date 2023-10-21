@@ -23,7 +23,7 @@ class PersonNotifier extends _$PersonNotifier {
 
   @override
   void build() {
-    return ;
+    return;
   }
 
   Future<Person> createPerson({required String name, required String path}) async {
@@ -40,7 +40,12 @@ class PersonNotifier extends _$PersonNotifier {
 
   Stream<Person> getPerson(String id) {
     final snapshots = collectionRef.doc(id).snapshots();
-    final personStream = snapshots.map((snapshot) => Person.fromJson(snapshot.data()!));
+    final personStream = snapshots.map((snapshot) {
+      if (snapshot.exists) {
+        return Person.fromJson(snapshot.data()!);
+      }
+      throw Error();
+    });
     return personStream;
   }
 

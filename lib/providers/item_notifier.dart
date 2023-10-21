@@ -24,7 +24,12 @@ class ItemNotifier extends _$ItemNotifier {
 
   Stream<Item> getItem(String id) {
     final snapshots = collectionRef.doc(id).snapshots();
-    return snapshots.map((snapshot) => Item.fromJson(snapshot.data()!));
+    return snapshots.map((snapshot) {
+      if (snapshot.exists) {
+      return Item.fromJson(snapshot.data()!);
+      }
+      throw Error();
+    });
   }
 
   Future<void> removePerson(Item item, Person person) async {
@@ -64,5 +69,12 @@ class ItemNotifier extends _$ItemNotifier {
     await collectionRef.doc(item.id).set(item.copyWith(participantEntries: entryList).toJson());
     final shoppingList = await ref.read(shoppingListProvider(item.shoppingListId).future);
     return await ref.read(shoppingListNotifierProvider.notifier).recalculate(shoppingList);
+  }
+
+  Future<void> delete(Item item, {required bool recursive}) async {
+    if (recursive) {
+      //TODO
+    }
+    return await collectionRef.doc(item.id).delete();
   }
 }

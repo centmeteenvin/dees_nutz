@@ -1,14 +1,15 @@
+import 'package:collection/collection.dart';
 import 'package:diw/main.dart';
 import 'package:diw/pages/home/home_page.dart';
 import 'package:diw/pages/shopping_list/shopping_list_item.dart';
 import 'package:diw/providers.dart';
 import 'package:diw/providers/person_notifier.dart';
 import 'package:diw/providers/shopping_list_notifier.dart';
+import 'package:diw/widgets/dialogs.dart';
 import 'package:diw/widgets/item_creator.dart';
 import 'package:diw/widgets/person_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:collection/collection.dart';
 import 'package:intl/intl.dart';
 
 class ShoppingListPage extends ConsumerWidget {
@@ -48,6 +49,22 @@ class ShoppingListPageAppBar extends ConsumerWidget implements PreferredSizeWidg
     return AppBar(
       title: Text(shoppingListTitle),
       centerTitle: true,
+      actions: [
+        IconButton(onPressed: () async {
+          final result = await ConfirmDialog.show(context, title: "Delete ShoppingList", description: "This action is permanent and cannot be reversed");
+          if (!result) return; 
+          final shoppingList = await ref.read(shoppingListProvider(id).future);
+          if (context.mounted) {
+            await ref.read(shoppingListNotifierProvider.notifier).deleteShoppingList(shoppingList);
+            // await showProcessIndicatorWhileWaitingOnFuture(context, ref.read(shoppingListNotifierProvider.notifier).deleteShoppingList(shoppingList));
+          }
+          if (context.mounted) {
+            // Navigator.pop(context);
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Sucessfully deleted shoppingList")));
+          }
+          
+        }, icon: const Icon(Icons.delete_forever))
+      ],
     );
   }
 

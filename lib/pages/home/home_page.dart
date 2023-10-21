@@ -142,7 +142,7 @@ class PersonSelector extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currentPerson = ref.watch(currentSelectedPersonProvider);
+    final currentPerson = ref.watch(currentSelectedPersonProvider.select((value) => value.value));
     return PersonAvatar(
         person: currentPerson,
         onTap: () {
@@ -173,7 +173,8 @@ class HomePageSideBarPersonSelectorContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currentPerson = ref.watch(currentSelectedPersonProvider);
+
+    final currentPerson = ref.watch(currentSelectedPersonProvider.select((value) => value.value));
     return SingleChildScrollView(
       child: Column(
         children: [
@@ -188,7 +189,7 @@ class HomePageSideBarPersonSelectorContent extends ConsumerWidget {
           ),
           const Divider(thickness: 3.0),
           PersonListSelector(
-            onTap: (person) => ref.read(currentSelectedPersonProvider.notifier).state = person,
+            onTap: (person) => ref.read(currentSelectedPersonProviderId.notifier).state = person.id,
           )
         ],
       ),
@@ -201,9 +202,10 @@ class HomePageShoppingListGrid extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currentPerson = ref.watch(currentSelectedPersonProvider);
-    if (currentPerson == null) return const Text("Select a person");
-    final shoppingListIds = currentPerson.shoppingListIds;
+    final currentPersonId = ref.watch(currentSelectedPersonProviderId);
+    if (currentPersonId == null) return const Text("Select a person");
+    final shoppingListIds = ref.watch(personProvider(currentPersonId).select((value) => value.value?.shoppingListIds));
+    if (shoppingListIds == null) return Container();
     // logger.i(currentPerson);
     return SingleChildScrollView(
       clipBehavior: Clip.antiAlias,

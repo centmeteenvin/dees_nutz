@@ -5,6 +5,7 @@ import 'package:diw/models/person.dart';
 import 'package:diw/models/shopping_list.dart';
 import 'package:diw/providers/item_notifier.dart';
 import 'package:diw/providers/person_notifier.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 
@@ -47,7 +48,10 @@ class ShoppingListNotifier extends _$ShoppingListNotifier {
     final snapshots = doc.snapshots();
     return snapshots.map((snapshot) {
       logger.d(snapshot.data());
-      return ShoppingList.fromJson(snapshot.data()!);
+      if (snapshot.exists) {
+        return ShoppingList.fromJson(snapshot.data()!);
+      }
+      throw Error();
     });
   }
 
@@ -118,5 +122,22 @@ class ShoppingListNotifier extends _$ShoppingListNotifier {
     participantEntries[personEntryIndex] = personEntry.copyWith(currentCost: personCost);
     logger.d(personCost);
     return shoppingList.copyWith(participantEntries: participantEntries);
+  }
+
+  /// This removes all associated items first, then remove the associated persons shoppinglist entry, then deletes the picture, finally the entry itself,
+  Future<void> deleteShoppingList(ShoppingList shoppingList) async {
+    final itemNotifier = ref.read(itemNotifierProvider.notifier);
+    for (final itemId in shoppingList.itemIds) {
+      final item = await ref.read(itemProvider(itemId).future);
+      await itemNotifier.delete(item, recursive: false);
+    }
+    final personNotifier = ref.read(personNotifierProvider.notifier);
+    final participantIds = shoppingList.participantEntries.map((entry) => entry.participantId);
+    for (final participantId in participantIds) {
+      final person = await ref.read(personProvider(participantId).future);
+      await personNotifier.removeShoppingList(person, shoppingList.id);
+    }
+    FirebaseStorage.instance.ref(shoppingList.picture).delete();
+    return await collectionRef.doc(shoppingList.id).delete();
   }
 }
