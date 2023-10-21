@@ -1,8 +1,7 @@
-import 'package:diw/main.dart';
 import 'package:diw/models/item.dart';
-import 'package:diw/models/shopping_list.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
 class ItemCreatorDialog extends ConsumerWidget {
@@ -10,15 +9,27 @@ class ItemCreatorDialog extends ConsumerWidget {
 
   final String shoppingListId;
   final List<String> participantIds;
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController priceController = TextEditingController();
-  ItemCreatorDialog({super.key, required this.shoppingListId, required this.participantIds});
+  final List<ItemParticipantEntry>? participantEntries;
+  late final TextEditingController nameController;
+  late final TextEditingController priceController;
+  ItemCreatorDialog({
+    super.key,
+    required this.shoppingListId,
+    required this.participantIds,
+    String? name,
+    double? price,
+    this.participantEntries
+
+  }) {
+    nameController = TextEditingController(text: name);
+    priceController = TextEditingController(text: NumberFormat("####.00").format(price ?? 0));
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Form(
       key: formKey,
-      child:  AlertDialog(
+      child: AlertDialog(
         title: const Text("Create Item"),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -51,33 +62,50 @@ class ItemCreatorDialog extends ConsumerWidget {
         ),
         actionsAlignment: MainAxisAlignment.spaceBetween,
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context),focusNode: FocusNode(canRequestFocus: false) , child: const Text("Cancel")),
-          TextButton(onPressed: () {
-            if (!(formKey.currentState?.validate() ?? false)) return;
-            final String name = nameController.value.text;
-            final double price = double.parse(priceController.value.text);
-            final item = Item(
-              id: const Uuid().v4(),
-              name: name,
-              price: price,
-              shoppingListId: shoppingListId,
-              participantEntries: participantIds.map((id) => ItemParticipantEntry(participantId: id, weight: 0)).toList(),
-            );
-            Navigator.pop(context, item);
-          }, focusNode: FocusNode(canRequestFocus: true), child: const Text("Create")),
-
+          TextButton(onPressed: () => Navigator.pop(context), focusNode: FocusNode(canRequestFocus: false), child: const Text("Cancel")),
+          TextButton(
+              onPressed: () {
+                if (!(formKey.currentState?.validate() ?? false)) return;
+                final String name = nameController.value.text;
+                final double price = double.parse(priceController.value.text);
+                final item = Item(
+                  id: const Uuid().v4(),
+                  name: name,
+                  price: price,
+                  shoppingListId: shoppingListId,
+                  participantEntries: participantEntries  ?? participantIds.map((id) => ItemParticipantEntry(participantId: id, weight: 0)).toList() ,
+                );
+                Navigator.pop(context, item);
+              },
+              focusNode: FocusNode(canRequestFocus: true),
+              child: const Text("Create")),
         ],
       ),
     );
   }
 
-
-  //Function handles db logic
-  static Future<Item?> show(BuildContext context, {required String shoppingListId, required List<String> participantIds}) async {
-    final item = await showDialog<Item>(context: context, builder: (context) => ItemCreatorDialog(shoppingListId: shoppingListId, participantIds: participantIds,));
+  static Future<Item?> show(BuildContext context, WidgetRef ref, {required String shoppingListId, required List<String> participantIds, Item? template}) async {
+    final Item? item;
+    if (template == null) {
+      item = await showDialog<Item>(
+          context: context,
+          builder: (context) => ItemCreatorDialog(
+                shoppingListId: shoppingListId,
+                participantIds: participantIds,
+              ));
+    } else {
+      item = await showDialog<Item>(
+        context: context,
+        builder: (context) => ItemCreatorDialog(
+          shoppingListId: shoppingListId,
+          participantIds: participantIds,
+          participantEntries: template.participantEntries,
+          name: template.name,
+          price: template.price,
+        ),
+      );
+    }
     if (item == null) return null;
-    final shoppingList = await getIt<ShoppingListService>().getShoppingList(shoppingListId).first;
-    await getIt<ShoppingListService>().addItemToShoppingList(shoppingList, item);
     return item;
   }
 }

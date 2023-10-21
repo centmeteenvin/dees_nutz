@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
-import 'package:diw/main.dart';
 import 'package:diw/models/person.dart';
+import 'package:diw/providers/person_notifier.dart';
 import 'package:diw/utils.dart';
 import 'package:file_picker/_internal/file_picker_web.dart';
 import 'package:file_picker/file_picker.dart';
@@ -94,7 +94,7 @@ class PersonCreateDialog extends ConsumerWidget {
               if (reference == null) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Please select an image")));
               if (!(formKey.currentState?.validate() ?? false)) return;
               
-              final result =  getIt<PersonService>().createPerson(name: nameController.value.text, path: reference!.fullPath);
+              final result =  ref.read(personNotifierProvider.notifier).createPerson(name: nameController.value.text, path: reference!.fullPath);
               await showProcessIndicatorWhileWaitingOnFuture(context, result);
               if (!context.mounted) return;
               // ref.invalidate(personsProvider);
