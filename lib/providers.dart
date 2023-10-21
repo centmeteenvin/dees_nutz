@@ -13,11 +13,4 @@ final pictureProvider = FutureProvider.family<String, String>((ref, path) async 
   logger.d(await ref.getDownloadURL());
   return ref.getDownloadURL();
 },);
-
-final personsProvider = StreamProvider<List<Person>>((ref) {
-  // return getIt<PersonService>().getAll(); TODO
-},);
-
-// final personProvider = StreamProvider.family<Person, String>((ref, id) => getIt<PersonService>().getPerson(id),); TODO
 // final shoppingListProvider = StreamProvider.family<ShoppingList, String>((ref, id) => getIt<ShoppingListService>().getShoppingList(id),); TODO
-// final itemProvider = StreamProvider.family<Item, String>((ref, id) => getIt<ItemService>().getItem(id));TODO
