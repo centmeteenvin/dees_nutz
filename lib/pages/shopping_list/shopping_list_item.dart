@@ -3,6 +3,7 @@ import 'package:diw/pages/home/home_page.dart';
 import 'package:diw/providers/item_notifier.dart';
 import 'package:diw/providers/person_notifier.dart';
 import 'package:diw/providers/shopping_list_notifier.dart';
+import 'package:diw/widgets/item_creator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -79,11 +80,28 @@ class ShoppingListPageItemListViewItem extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: widgets,
               )),
-              IconButton(onPressed: () async {
-                final shoppingList = await ref.read(shoppingListProvider(item.shoppingListId).future);
-                return await ref.read(shoppingListNotifierProvider.notifier).removeItemFromShoppingList(shoppingList, item);
-              }, icon: const Icon(Icons.delete))
-
+              IconButton(
+                onPressed: () async {
+                  var createdItem = await ItemCreatorDialog.show(
+                    context,
+                    ref,
+                    shoppingListId: item.shoppingListId,
+                    participantIds: item.participantEntries.map((entry) => entry.participantId).toList(),
+                    template: item,
+                  );
+                  if (createdItem == null) return;
+                  createdItem = createdItem.copyWith(id: item.id);
+                  return await ref.read(itemNotifierProvider.notifier).update(createdItem);
+                },
+                icon: const Icon(Icons.edit),
+              ),
+              IconButton(
+                onPressed: () async {
+                  final shoppingList = await ref.read(shoppingListProvider(item.shoppingListId).future);
+                  return await ref.read(shoppingListNotifierProvider.notifier).removeItemFromShoppingList(shoppingList, item);
+                },
+                icon: const Icon(Icons.delete),
+              ),
             ],
           ),
         );
@@ -115,16 +133,16 @@ class ShoppingListPageListViewItemEntry extends ConsumerWidget {
             },
           ),
           // if (entry.weight != 0)
-            InkWell(
-              onTap: () {
-                if (entry.weight > 0) {
-                  ref.read(itemNotifierProvider.notifier).decreaseWeight(item, person);
-                }
-              },
-              child: CircleAvatar(
-                child: Text(entry.weight.toString()),
-              ),
+          InkWell(
+            onTap: () {
+              if (entry.weight > 0) {
+                ref.read(itemNotifierProvider.notifier).decreaseWeight(item, person);
+              }
+            },
+            child: CircleAvatar(
+              child: Text(entry.weight.toString()),
             ),
+          ),
         ],
       ),
     );

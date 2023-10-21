@@ -74,4 +74,11 @@ class ItemNotifier extends _$ItemNotifier {
   Future<void> delete(Item item) async {
     return await collectionRef.doc(item.id).delete();
   }
+
+  Future<void> update(Item item) async {
+    final previousItem =  await ref.read(itemProvider(item.id).future);
+    await collectionRef.doc(item.id).update(item.toJson());
+    final shoppingList = await ref.read(shoppingListProvider(item.shoppingListId).future);
+    await ref.read(shoppingListNotifierProvider.notifier).recalculate(shoppingList.copyWith(total: shoppingList.total - previousItem.price + item.price));
+  }
 }

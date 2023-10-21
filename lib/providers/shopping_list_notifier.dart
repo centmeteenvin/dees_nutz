@@ -128,7 +128,7 @@ class ShoppingListNotifier extends _$ShoppingListNotifier {
     final itemIds = List.of(shoppingList.itemIds);
     itemIds.remove(item.id);
     await ref.read(itemNotifierProvider.notifier).delete(item);
-    return recalculate(shoppingList.copyWith(itemIds: itemIds));
+    return recalculate(shoppingList.copyWith(itemIds: itemIds, total: shoppingList.total - item.price));
   }
 
   /// This removes all associated items first, then remove the associated persons shoppinglist entry, then deletes the picture, finally the entry itself,

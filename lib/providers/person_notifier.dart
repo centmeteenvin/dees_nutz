@@ -62,6 +62,6 @@ class PersonNotifier extends _$PersonNotifier {
     final doc = collectionRef.doc(person.id);
     final shoppingListIds = List.of(person.shoppingListIds);
     shoppingListIds.remove(id);
-    await doc.set(person.copyWith(shoppingListIds: shoppingListIds).toJson());
+    return await doc.set(person.copyWith(shoppingListIds: shoppingListIds).toJson());
   }
 }

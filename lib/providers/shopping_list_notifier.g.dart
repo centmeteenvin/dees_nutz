@@ -156,7 +156,7 @@ class _ShoppingListProviderElement extends StreamProviderElement<ShoppingList>
 }
 
 String _$shoppingListNotifierHash() =>
-    r'6b23661d4b5ba81130006e15c4c028973c03c316';
+    r'50789f5e9795bcdd36f08e3788aa760e266b14fd';
 
 /// See also [ShoppingListNotifier].
 @ProviderFor(ShoppingListNotifier)

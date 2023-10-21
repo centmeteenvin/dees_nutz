@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:diw/main.dart';
+import 'package:diw/models/item.dart';
 import 'package:diw/pages/home/home_page.dart';
 import 'package:diw/pages/shopping_list/shopping_list_item.dart';
 import 'package:diw/providers.dart';
@@ -243,8 +244,11 @@ class ShoppingListPageFloatingActionButton extends ConsumerWidget {
         ref.watch(shoppingListProvider(id).select((value) => value.value?.participantEntries.map((entry) => entry.participantId).toList() ?? []));
     return FloatingActionButton(
       onPressed: () async {
-        logger.i(await ItemCreatorDialog.show(context, ref, shoppingListId: id, participantIds: participantIds));
-      },
+        final Item? item = await ItemCreatorDialog.show(context, ref, shoppingListId: id, participantIds: participantIds);
+        if (item == null) return;
+        final shoppingList = await ref.read(shoppingListProvider(id).future);
+        await ref.read(shoppingListNotifierProvider.notifier).addItemToShoppingList(shoppingList, item);
+       },
       child: const Icon(Icons.add),
     );
   }
