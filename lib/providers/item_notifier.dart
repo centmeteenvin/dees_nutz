@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:diw/models/item.dart';
 import 'package:diw/models/person.dart';
 import 'package:diw/models/shopping_list.dart';
+import 'package:diw/providers/shopping_list_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'item_notifier.g.dart';
@@ -59,7 +60,7 @@ class ItemNotifier extends _$ItemNotifier {
     final originalEntry = entryList[entryIndex];
     entryList[entryIndex] = originalEntry.copyWith(weight: originalEntry.weight - 1);
     await collectionRef.doc(item.id).set(item.copyWith(participantEntries: entryList).toJson());
-    // final shoppingList = getIt<ShoppingListService>().getShoppingList(item.shoppingListId); TODO
+    final shoppingList = ref.read(shoppingListProvider(item.shoppingListId));
     // return await getIt<ShoppingListService>().recalculate(shoppingList, person); TODO
   }
 }

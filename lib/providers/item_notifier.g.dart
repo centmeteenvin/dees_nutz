@@ -151,7 +151,7 @@ class _ItemProviderElement extends StreamProviderElement<Item> with ItemRef {
   String get itemId => (origin as ItemProvider).itemId;
 }
 
-String _$itemNotifierHash() => r'9066c3b061e68feb58889a384ac1af0adce0c0e5';
+String _$itemNotifierHash() => r'8a20e78ec43e19763cd43ce704880d809fca5e7a';
 
 /// See also [ItemNotifier].
 @ProviderFor(ItemNotifier)

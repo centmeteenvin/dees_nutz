@@ -53,7 +53,7 @@ class PersonNotifier extends _$PersonNotifier {
     await doc.set(person.copyWith(shoppingListIds: shoppingListIds).toJson());
   }
 
-  void removeShoppingList(Person person, String id) async {
+  Future<void> removeShoppingList(Person person, String id) async {
     final doc = collectionRef.doc(person.id);
     final shoppingListIds = List.of(person.shoppingListIds);
     shoppingListIds.remove(id);

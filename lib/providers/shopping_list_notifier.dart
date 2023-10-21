@@ -3,6 +3,8 @@ import 'package:diw/main.dart';
 import 'package:diw/models/item.dart';
 import 'package:diw/models/person.dart';
 import 'package:diw/models/shopping_list.dart';
+import 'package:diw/providers/item_notifier.dart';
+import 'package:diw/providers/person_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 
@@ -18,7 +20,7 @@ Stream<ShoppingList> shoppingList(ShoppingListRef ref, String id) {
 class ShoppingListNotifier extends _$ShoppingListNotifier {
   @override
   void build() {
-    return ;
+    return;
   }
 
   final collectionRef = FirebaseFirestore.instance.collection("shoppingLists");
@@ -33,9 +35,9 @@ class ShoppingListNotifier extends _$ShoppingListNotifier {
       total: 0,
     );
     await collectionRef.doc(shoppingList.id).set(shoppingList.toJson());
-    // PersonService personService = getIt<PersonService>(); TODO
+    final personNotifier = ref.read(personNotifierProvider.notifier);
     for (Person person in participants) {
-      await personService.addShoppingList(person, shoppingList.id);
+      await personNotifier.addShoppingList(person, shoppingList.id);
     }
     return shoppingList;
   }
@@ -51,28 +53,34 @@ class ShoppingListNotifier extends _$ShoppingListNotifier {
 
   Future<void> addPersonToShoppingList(ShoppingList shoppingList, Person person) async {
     final participantList = List.of(shoppingList.participantEntries);
-    if (!participantList.any((entry) => entry.participantId == person.id,)) {
+    if (!participantList.any(
+      (entry) => entry.participantId == person.id,
+    )) {
       participantList.add(ShoppingListParticipantEntry(participantId: person.id, currentCost: 0));
     }
-    // final List<Item> items = await Future.wait(shoppingList.itemIds.map((itemId) async => await getIt<ItemService>().getItem(itemId).first)); TODO
+    final List<Item> items = await Future.wait(shoppingList.itemIds.map((itemId) async {
+      return await ref.read(ItemProvider(itemId).future);
+    }));
+    final itemNotifier = ref.read(itemNotifierProvider.notifier);
     await Future.wait(items.map(
       (item) {
-        // return getIt<ItemService>().addPerson(item, person); TODO
+        return itemNotifier.addPerson(item, person);
       },
     ));
 
-    // getIt<PersonService>().addShoppingList(person, shoppingList.id); TODO
+    await ref.read(personNotifierProvider.notifier).addShoppingList(person, shoppingList.id);
     return await collectionRef.doc(shoppingList.id).set(shoppingList.copyWith(participantEntries: participantList).toJson());
   }
 
   void removePersonFromList(ShoppingList shoppingList, Person person) async {
     final participantList = List.of(shoppingList.participantEntries);
     participantList.removeWhere((entry) => entry.participantId == person.id);
-    // getIt<PersonService>().removeShoppingList(person, shoppingList.id); TODO
-    // final List<Item> items = await Future.wait(shoppingList.itemIds.map((itemId) async => await getIt<ItemService>().getItem(itemId).first)); TODO
+    await ref.read(personNotifierProvider.notifier).removeShoppingList(person, shoppingList.id);
+    final List<Item> items = await Future.wait(shoppingList.itemIds.map((itemId) async => await ref.read(itemProvider(itemId).future)));
+    final itemNotifier = ref.read(itemNotifierProvider.notifier);
     await Future.wait(items.map(
       (item) {
-        // return getIt<ItemService>().removePerson(item, person); TODO
+        return itemNotifier.removePerson(item, person);
       },
     ));
     return await collectionRef.doc(shoppingList.id).set(shoppingList.copyWith(participantEntries: participantList).toJson());
@@ -84,11 +92,9 @@ class ShoppingListNotifier extends _$ShoppingListNotifier {
       itemList.add(item.id);
     }
 
-    // await getIt<ItemService>().addShoppingList(item, shoppingList); TODO
+    await ref.read(itemNotifierProvider.notifier).addShoppingList(item, shoppingList);
     await collectionRef.doc(shoppingList.id).set(shoppingList.copyWith(itemIds: itemList, total: shoppingList.total + item.price).toJson());
   }
 
-  Future<void> recalculate(Stream<ShoppingList> shoppingList, Person person)  async {
-    
-  }
+  Future<void> recalculate(Stream<ShoppingList> shoppingList, Person person) async {}
 }
