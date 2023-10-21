@@ -124,12 +124,19 @@ class ShoppingListNotifier extends _$ShoppingListNotifier {
     return shoppingList.copyWith(participantEntries: participantEntries);
   }
 
+  Future<void> removeItemFromShoppingList(ShoppingList shoppingList, Item item) async {
+    final itemIds = List.of(shoppingList.itemIds);
+    itemIds.remove(item.id);
+    await ref.read(itemNotifierProvider.notifier).delete(item);
+    return recalculate(shoppingList.copyWith(itemIds: itemIds));
+  }
+
   /// This removes all associated items first, then remove the associated persons shoppinglist entry, then deletes the picture, finally the entry itself,
   Future<void> deleteShoppingList(ShoppingList shoppingList) async {
     final itemNotifier = ref.read(itemNotifierProvider.notifier);
     for (final itemId in shoppingList.itemIds) {
       final item = await ref.read(itemProvider(itemId).future);
-      await itemNotifier.delete(item, recursive: false);
+      await itemNotifier.delete(item);
     }
     final personNotifier = ref.read(personNotifierProvider.notifier);
     final participantIds = shoppingList.participantEntries.map((entry) => entry.participantId);

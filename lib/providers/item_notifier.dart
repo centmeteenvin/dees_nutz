@@ -71,10 +71,7 @@ class ItemNotifier extends _$ItemNotifier {
     return await ref.read(shoppingListNotifierProvider.notifier).recalculate(shoppingList);
   }
 
-  Future<void> delete(Item item, {required bool recursive}) async {
-    if (recursive) {
-      //TODO
-    }
+  Future<void> delete(Item item) async {
     return await collectionRef.doc(item.id).delete();
   }
 }

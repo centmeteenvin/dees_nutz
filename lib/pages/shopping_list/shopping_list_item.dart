@@ -79,6 +79,11 @@ class ShoppingListPageItemListViewItem extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: widgets,
               )),
+              IconButton(onPressed: () async {
+                final shoppingList = await ref.read(shoppingListProvider(item.shoppingListId).future);
+                return await ref.read(shoppingListNotifierProvider.notifier).removeItemFromShoppingList(shoppingList, item);
+              }, icon: const Icon(Icons.delete))
+
             ],
           ),
         );
