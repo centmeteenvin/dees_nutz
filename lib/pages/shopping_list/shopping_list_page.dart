@@ -194,7 +194,7 @@ class ShoppingListPageFloatingActionButton extends ConsumerWidget {
         ref.watch(shoppingListProvider(id).select((value) => value.value?.participantEntries.map((entry) => entry.participantId).toList() ?? []));
     return FloatingActionButton(
       onPressed: () async {
-        logger.i(await ItemCreatorDialog.show(context, shoppingListId: id, participantIds: participantIds));
+        logger.i(await ItemCreatorDialog.show(context, ref, shoppingListId: id, participantIds: participantIds));
       },
       child: const Icon(Icons.add),
     );

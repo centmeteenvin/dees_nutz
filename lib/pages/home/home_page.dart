@@ -2,6 +2,8 @@ import 'package:diw/main.dart';
 import 'package:diw/models/person.dart';
 import 'package:diw/pages/shopping_list/shopping_list_page.dart';
 import 'package:diw/providers.dart';
+import 'package:diw/providers/person_notifier.dart';
+import 'package:diw/providers/shopping_list_notifier.dart';
 import 'package:diw/widgets/person_creator.dart';
 import 'package:diw/widgets/person_selector.dart';
 import 'package:diw/widgets/shopping_list_creator.dart';
