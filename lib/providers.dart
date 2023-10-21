@@ -1,7 +1,5 @@
 import 'package:diw/main.dart';
-import 'package:diw/models/item.dart';
 import 'package:diw/models/person.dart';
-import 'package:diw/models/shopping_list.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -17,9 +15,9 @@ final pictureProvider = FutureProvider.family<String, String>((ref, path) async 
 },);
 
 final personsProvider = StreamProvider<List<Person>>((ref) {
-  return getIt<PersonService>().getAll();
+  // return getIt<PersonService>().getAll(); TODO
 },);
 
-final personProvider = StreamProvider.family<Person, String>((ref, id) => getIt<PersonService>().getPerson(id),);
-final shoppingListProvider = StreamProvider.family<ShoppingList, String>((ref, id) => getIt<ShoppingListService>().getShoppingList(id),);
-final itemProvider = StreamProvider.family<Item, String>((ref, id) => getIt<ItemService>().getItem(id));
+// final personProvider = StreamProvider.family<Person, String>((ref, id) => getIt<PersonService>().getPerson(id),); TODO
+// final shoppingListProvider = StreamProvider.family<ShoppingList, String>((ref, id) => getIt<ShoppingListService>().getShoppingList(id),); TODO
+// final itemProvider = StreamProvider.family<Item, String>((ref, id) => getIt<ItemService>().getItem(id));TODO

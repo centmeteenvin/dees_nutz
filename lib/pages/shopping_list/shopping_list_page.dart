@@ -139,7 +139,7 @@ class ShoppingListPageBodyPeople extends ConsumerWidget {
     final person = await PersonSelectorDialog.show(context, ref, title: "Select a Person");
     if (person == null) return;
     final shoppingList = await ref.read(shoppingListProvider(id).future);
-    getIt<ShoppingListService>().addPersonToShoppingList(shoppingList, person);
+    // getIt<ShoppingListService>().addPersonToShoppingList(shoppingList, person); TODO
   }
 }
 
@@ -179,7 +179,7 @@ class ShoppingListPageBodyPeopleItem extends ConsumerWidget {
   removePerson(BuildContext context, WidgetRef ref) async {
     final person = await ref.read(personProvider(participantId).future);
     final shoppingList = await ref.read(shoppingListProvider(id).future);
-    getIt<ShoppingListService>().removePersonFromList(shoppingList, person);
+    // getIt<ShoppingListService>().removePersonFromList(shoppingList, person); TODO
   }
 }
 

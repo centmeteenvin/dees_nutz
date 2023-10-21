@@ -1,4 +1,3 @@
-import 'package:diw/main.dart';
 import 'package:diw/models/item.dart';
 import 'package:diw/pages/home/home_page.dart';
 import 'package:diw/providers.dart';
@@ -84,7 +83,7 @@ class ShoppingListPageListViewItemEntry extends ConsumerWidget {
           if (entry.weight != 0)
             InkWell(
               onTap: () {
-                getIt<ItemService>().decreaseWeight(item, person);
+                // getIt<ItemService>().decreaseWeight(item, person); TODO
               },
               child: CircleAvatar(
                 child: Text(entry.weight.toString()),
@@ -93,7 +92,7 @@ class ShoppingListPageListViewItemEntry extends ConsumerWidget {
           PersonAvatar(
             person: person,
             onTap: () {
-              getIt<ItemService>().increaseWeight(item, person);
+              // getIt<ItemService>().increaseWeight(item, person); TODO
             },
           ),
         ],

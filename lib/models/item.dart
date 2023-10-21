@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:diw/main.dart';
 import 'package:diw/models/person.dart';
 import 'package:diw/models/shopping_list.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -72,7 +71,7 @@ class ItemService {
     final originalEntry = entryList[entryIndex];
     entryList[entryIndex] = originalEntry.copyWith(weight: originalEntry.weight - 1);
     await ref.doc(item.id).set(item.copyWith(participantEntries: entryList).toJson());
-    final shoppingList = getIt<ShoppingListService>().getShoppingList(item.shoppingListId);
-    return await getIt<ShoppingListService>().recalculate(shoppingList, person);
+    // final shoppingList = getIt<ShoppingListService>().getShoppingList(item.shoppingListId); TODO
+    // return await getIt<ShoppingListService>().recalculate(shoppingList, person); TODO
   }
 }

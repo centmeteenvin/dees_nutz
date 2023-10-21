@@ -40,7 +40,6 @@ dependencies:
   json_annotation: ^4.8.1
   freezed_annotation: ^2.4.1
   json_serializable: ^6.7.1
-  get_it: ^7.6.4
   file_picker: ^6.0.0
   firebase_core: ^2.18.0
   firebase_storage: ^11.3.0
