@@ -7,7 +7,7 @@ import 'package:shelf_router/shelf_router.dart';
 
 part 'server.g.dart';
 
-final Logger logger= Logger(level: Level.info);
+final Logger logger= Logger(level: Level.info,);
 
 class EchoService {
   Router get router => _$EchoServiceRouter(this);
@@ -30,6 +30,7 @@ class WebHookService {
   Future<Response> echo(Request request) async {
     final body = await request.readAsString();
     logger.i(body);
+    print(body);
     return Response.ok(body);
   }
 }
