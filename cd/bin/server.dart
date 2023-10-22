@@ -26,7 +26,7 @@ class EchoService {
 class WebHookService {
   Router get router => _$WebHookServiceRouter(this);
 
-  @Route.post('/')
+  @Route.post('/staging/webhook')
   Future<Response> echo(Request request) async {
     final body = await request.readAsString();
     logger.i(body);
@@ -37,7 +37,7 @@ class WebHookService {
 
 void main(List<String> args) async {
   // Use any available host or container IP (usually `0.0.0.0`).
-  final ip = InternetAddress(args[0]);
+  final ip = InternetAddress.anyIPv4;
   final port = int.parse(args[1]);
   final service = WebHookService();
   // Configure a pipeline that logs requests.

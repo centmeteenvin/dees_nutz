@@ -25,7 +25,7 @@ Router _$WebHookServiceRouter(WebHookService service) {
   final router = Router();
   router.add(
     'POST',
-    r'/',
+    r'/staging/webhook',
     service.echo,
   );
   return router;
