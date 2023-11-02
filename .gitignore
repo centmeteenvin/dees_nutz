@@ -1,3 +1,15 @@
+
+cd/.vscode/
+
+.dart_tool/
+
+.idea/
+
+.vscode/
+
+doc/
+
+
 # Miscellaneous
 *.class
 *.log
