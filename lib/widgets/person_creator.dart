@@ -2,14 +2,15 @@ import 'dart:typed_data';
 
 import 'package:diw/main.dart';
 import 'package:diw/models/person.dart';
+import 'package:diw/providers/file_notifier.dart';
 import 'package:diw/providers/person_notifier.dart';
 import 'package:diw/utils.dart';
-import 'package:file_picker/_internal/file_picker_web.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+
+typedef CommitFunction = Future<void> Function(String newName, String profilePicturePath);
 
 class PersonCreateWidget extends ConsumerWidget {
   final Widget child;
@@ -19,7 +20,54 @@ class PersonCreateWidget extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return IconButton(
         onPressed: () async {
-          PersonCreateDialog.show(context, ref);
+          PersonCreateDialog.show(
+            context,
+            ref,
+            commitButtonText: "Create",
+            commitFunction: (newName, profilePicturePath) async {
+              await ref.read(personNotifierProvider.notifier).createPerson(name: newName, path: profilePicturePath);
+            },
+            dialogTitle: "Create Person",
+            returnScaffoldMessage: "Successfully Created Person",
+            shouldDelete: true
+          );
+        },
+        icon: child);
+  }
+}
+
+class PersonEditWidget extends HookConsumerWidget {
+  final String personId;
+  final Widget child;
+  const PersonEditWidget(this.personId, {super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isCalled = useState(false);
+
+    final person = ref.watch(personProvider(personId).select((value) => value.value));
+    return IconButton(
+        onPressed: () async {
+          if (person == null) {
+            isCalled.value = false;
+            return;
+          }
+          if (isCalled.value) return;
+          isCalled.value = true;
+          await PersonCreateDialog.show(
+            context,
+            ref,
+            dialogTitle: "Edit Person",
+            commitButtonText: "Edit",
+            commitFunction: (newName, profilePicturePath) async {
+              final PersonNotifier personNotifier = ref.read(personNotifierProvider.notifier);
+              await personNotifier.updatePerson(person.copyWith(name: newName));
+            },
+            initialData: person,
+            returnScaffoldMessage: "Successfully edited person.",
+            shouldDelete: false
+          );
+          isCalled.value = false;
         },
         icon: child);
   }
@@ -31,11 +79,25 @@ final personCreatorProfilePictureBytesProvider = StateProvider<Uint8List?>((ref)
 final personCreatorProfilePictureNameRefProvider = StateProvider<Reference?>((ref) => null);
 
 class PersonCreateDialog extends HookConsumerWidget {
-  const PersonCreateDialog({super.key});
+  final Person? initialValue;
+  final String dialogTitle;
+  final String commitButtonText;
+  final CommitFunction commitFunction;
+  final String? scaffoldReturnMessage;
+  final bool shouldDelete;
+  const PersonCreateDialog({
+    super.key,
+    required this.dialogTitle,
+    required this.commitButtonText,
+    required this.commitFunction,
+    this.initialValue,
+    this.scaffoldReturnMessage,
+    required this.shouldDelete,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final nameController = useTextEditingController();
+    final nameController = useTextEditingController(text: initialValue?.name);
     final formKey = useMemoized(
       () => GlobalKey<FormState>(),
     );
@@ -47,7 +109,7 @@ class PersonCreateDialog extends HookConsumerWidget {
     return Form(
       key: formKey,
       child: AlertDialog(
-        title: const Text("Create Person"),
+        title: Text(dialogTitle),
         content: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           mainAxisSize: MainAxisSize.min,
@@ -87,8 +149,11 @@ class PersonCreateDialog extends HookConsumerWidget {
           TextButton(
             autofocus: true,
             onPressed: () async {
-              if (reference != null) {
-                await showProcessIndicatorWhileWaitingOnFuture(context, reference.delete());
+              if (reference != null && shouldDelete) {
+                await showProcessIndicatorWhileWaitingOnFuture(
+                  context,
+                  ref.read(fileNotifierProvider.notifier).deleteFileReference(reference),
+                );
               }
               if (context.mounted) Navigator.pop(context);
             },
@@ -99,14 +164,14 @@ class PersonCreateDialog extends HookConsumerWidget {
               if (reference == null) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Please select an image")));
               if (!(formKey.currentState?.validate() ?? false)) return;
 
-              final result = ref.read(personNotifierProvider.notifier).createPerson(name: nameController.value.text, path: reference!.fullPath);
-              await showProcessIndicatorWhileWaitingOnFuture(context, result);
+              await showProcessIndicatorWhileWaitingOnFuture(context, commitFunction(nameController.text, reference!.fullPath));
               if (!context.mounted) return;
-              // ref.invalidate(personsProvider);
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("SuccessFully Created Person")));
+              if (scaffoldReturnMessage != null) {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(scaffoldReturnMessage!)));
+              }
               Navigator.pop(context);
             },
-            child: const Text("Create"),
+            child: Text(commitButtonText),
           ),
         ],
       ),
@@ -115,22 +180,54 @@ class PersonCreateDialog extends HookConsumerWidget {
 
   Future<void> selectAndUploadPicture(BuildContext context, WidgetRef ref, GlobalKey<FormState> formKey, TextEditingController nameController) async {
     if (!(formKey.currentState?.validate() ?? false)) return;
-    final picked =
-        await FilePickerWeb.platform.pickFiles(dialogTitle: "Pick a picture", allowMultiple: false, type: FileType.image, initialDirectory: "Pictures");
+    final notifier = ref.read(fileNotifierProvider.notifier);
+    final picked = await notifier.pickFile();
     if (picked != null) {
-      final reference = FirebaseStorage.instance.ref("profilePictures/${nameController.value.text}.${picked.files.first.extension}");
       // ignore: use_build_context_synchronously
-      await showProcessIndicatorWhileWaitingOnFuture(context, reference.putData(picked.files.first.bytes!));
+      final reference = await showProcessIndicatorWhileWaitingOnFuture(
+          context,
+          notifier.uploadFile(
+            picked,
+            FileCollection.profilePicture,
+            "${nameController.text}.${picked.extension}",
+          ));
       ref.read(personCreatorProfilePictureNameRefProvider.notifier).state = reference;
-      ref.read(personCreatorProfilePictureBytesProvider.notifier).state = picked.files.first.bytes;
+      ref.read(personCreatorProfilePictureBytesProvider.notifier).state = await picked.readAsBytes();
+      ref.invalidate(pictureUrlProvider);
     }
   }
 
-  static Future<Person?> show(BuildContext context, WidgetRef ref) async {
+  static Future<Person?> show(
+    BuildContext context,
+    WidgetRef ref, {
+    Person? initialData,
+    required String dialogTitle,
+    required String commitButtonText,
+    required CommitFunction commitFunction,
+    required bool shouldDelete,
+    String? returnScaffoldMessage,
+  }) async {
     ref.invalidate(personCreatorProfilePictureBytesProvider);
     ref.invalidate(personCreatorProfilePictureNameRefProvider);
-
+    final notifier = ref.read(fileNotifierProvider.notifier);
+    if (initialData != null) {
+      final reference = notifier.getFileReference(initialData.profilePicture);
+      ref.read(personCreatorProfilePictureNameRefProvider.notifier).state = reference;
+      ref.read(personCreatorProfilePictureBytesProvider.notifier).state = await reference.getData();
+    }
     logger.d("Static: ${ref.read(personCreatorProfilePictureNameRefProvider)}");
-    return await showDialog<Person>(context: context, builder: (context) => const PersonCreateDialog(), barrierDismissible: false);
+    if (!context.mounted) return null;
+    return await showDialog<Person>(
+      context: context,
+      builder: (context) => PersonCreateDialog(
+        dialogTitle: dialogTitle,
+        commitButtonText: commitButtonText,
+        commitFunction: commitFunction,
+        initialValue: initialData,
+        scaffoldReturnMessage: returnScaffoldMessage,
+        shouldDelete: shouldDelete,
+      ),
+      barrierDismissible: false,
+    );
   }
 }

@@ -1,10 +1,7 @@
-import 'package:diw/models/person.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'shopping_list.freezed.dart';
 part 'shopping_list.g.dart';
-
-List<String> personIdMapper(List<Person> persons) => persons.map((person) => person.id).toList(); //TODO remove
 
 @freezed
 class ShoppingList with _$ShoppingList {
