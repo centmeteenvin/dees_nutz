@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:collection/collection.dart';
 import 'package:diw/models/person.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
@@ -29,6 +30,18 @@ class PersonNotifier extends _$PersonNotifier {
   Future<Person> createPerson({required String name, required String path}) async {
     final Person person = Person(id: const Uuid().v4(), name: name, profilePicture: path);
     await collectionRef.doc(person.id).set(person.toJson());
+    return person;
+  }
+  ///Throws an exception if the person doesn't exist. This method throws an error whenever a relational field is being edited.
+  Future<Person> updatePerson(Person newPerson) async {
+    final ref = collectionRef.doc(newPerson.id);
+    final data = await ref.get();
+    if (!data.exists) throw Exception("Person does not exists in db: $newPerson");
+    final person = Person.fromJson(data.data()!);
+    if (!person.shoppingListIds.equals(newPerson.shoppingListIds)) {
+      throw Exception("Attempted to alter a relational field. $newPerson -> shoppingLists: ${newPerson.shoppingListIds}");
+    }
+    await ref.set(newPerson.toJson());
     return person;
   }
 
