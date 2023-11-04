@@ -5,6 +5,8 @@ import 'package:diw/providers.dart';
 import 'package:diw/providers/file_notifier.dart';
 import 'package:diw/providers/person_notifier.dart';
 import 'package:diw/providers/shopping_list_notifier.dart';
+import 'package:diw/utils.dart';
+import 'package:diw/widgets/dialogs.dart';
 import 'package:diw/widgets/person_creator.dart';
 import 'package:diw/widgets/person_selector.dart';
 import 'package:diw/widgets/shopping_list_creator.dart';
@@ -158,12 +160,44 @@ class HomePageSideBarPersonSelector extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return const Drawer(
-      child: SingleChildScrollView(
-        child: Padding(
-          padding: EdgeInsets.all(30.0),
-          child: HomePageSideBarPersonSelectorContent(),
-        ),
+    final selectedPersonId = ref.watch(currentSelectedPersonProviderId);
+    return Drawer(
+      child: Column(
+        children: [
+          const Expanded(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: EdgeInsets.all(30.0),
+                child: HomePageSideBarPersonSelectorContent(),
+              ),
+            ),
+          ),
+          if (selectedPersonId != null)
+            Row(
+              children: [
+                const Spacer(),
+                IconButton(
+                    onPressed: () async {
+                      final person = await ref.read(personProvider(selectedPersonId).future);
+                      if (!context.mounted) return;
+                      final result = await ConfirmDialog.show(
+                        context,
+                        title: "Delete Person!",
+                        description: "Are you 100% sure you want to delete this person.\nThis action is permanent and cannot be reversed.",
+                      );
+                      if (!result) return;
+                      if (!context.mounted) return;
+                      final personNotifier = ref.read(personNotifierProvider.notifier);
+                      await showProcessIndicatorWhileWaitingOnFuture(context, personNotifier.deletePerson(person));
+                      if (!context.mounted) return;
+                      ref.read(currentSelectedPersonProviderId.notifier).state = null; 
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("SuccessFully Deleted Person")));
+
+                    },
+                    icon: const Icon(Icons.delete_forever)),
+              ],
+            ),
+        ],
       ),
     );
   }
@@ -174,7 +208,6 @@ class HomePageSideBarPersonSelectorContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-
     final currentPerson = ref.watch(currentSelectedPersonProvider.select((value) => value.value));
     return SingleChildScrollView(
       child: Column(
@@ -189,8 +222,7 @@ class HomePageSideBarPersonSelectorContent extends ConsumerWidget {
                   size: 60,
                 ),
               ),
-              if (currentPerson != null)
-              PersonEditWidget(currentPerson.id, child: const Icon(Icons.edit))
+              if (currentPerson != null) PersonEditWidget(currentPerson.id, child: const Icon(Icons.edit))
             ],
           ),
           const SizedBox(height: 15),

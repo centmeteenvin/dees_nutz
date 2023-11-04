@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:collection/collection.dart';
 import 'package:diw/models/person.dart';
+import 'package:diw/providers/file_notifier.dart';
+import 'package:diw/providers/shopping_list_notifier.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 
@@ -76,5 +78,20 @@ class PersonNotifier extends _$PersonNotifier {
     final shoppingListIds = List.of(person.shoppingListIds);
     shoppingListIds.remove(id);
     return await doc.set(person.copyWith(shoppingListIds: shoppingListIds).toJson());
+  }
+
+  Future<void> deletePerson(Person person) async {
+    final shoppingListNotifier = ref.read(shoppingListNotifierProvider.notifier);
+    for (var shoppingListId in person.shoppingListIds) {
+      final shoppingList = await ref.read(shoppingListProvider(shoppingListId).future);
+      if (shoppingList.participantEntries.length == 1) {
+        await shoppingListNotifier.deleteShoppingList(shoppingList);
+      } else {
+         shoppingListNotifier.removePersonFromList(shoppingList, person);
+      }
+    }
+    final fileNotifier = ref.read(fileNotifierProvider.notifier);
+    await fileNotifier.deleteFile(person.profilePicture);
+    await collectionRef.doc(person.id).delete();
   }
 }
