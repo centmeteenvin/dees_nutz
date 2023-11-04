@@ -227,7 +227,7 @@ class ShoppingListPageBodyPeopleItemCost extends ConsumerWidget {
     final personCost = ref.watch(shoppingListProvider(shoppingListId).select((value) {
       return value.value?.participantEntries.firstWhereOrNull((entry) => entry.participantId == participantId)?.currentCost ?? 0;
     }));
-    return Text("${NumberFormat("####.00").format(personCost)}/$totalCost EUR -> ${NumberFormat("##.0%").format(personCost/totalCost)}");
+    return Text("${NumberFormat("####.00").format(personCost)}/${NumberFormat("####.00").format(totalCost)} EUR -> ${NumberFormat("##.0%").format(personCost/totalCost)}");
   }
 }
 
