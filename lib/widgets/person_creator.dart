@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:diw/main.dart';
 import 'package:diw/models/person.dart';
 import 'package:diw/providers/person_notifier.dart';
 import 'package:diw/utils.dart';
@@ -7,21 +8,18 @@ import 'package:file_picker/_internal/file_picker_web.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-class PersonCreateWidget extends StatelessWidget {
+class PersonCreateWidget extends ConsumerWidget {
   final Widget child;
   const PersonCreateWidget({super.key, required this.child});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return IconButton(
         onPressed: () async {
-          await showDialog<Person>(
-            context: context,
-            builder: (context) => PersonCreateDialog(),
-            barrierDismissible: false,
-          );
+          PersonCreateDialog.show(context, ref);
         },
         icon: child);
   }
@@ -32,15 +30,20 @@ final personCreatorProfilePictureBytesProvider = StateProvider<Uint8List?>((ref)
 });
 final personCreatorProfilePictureNameRefProvider = StateProvider<Reference?>((ref) => null);
 
-class PersonCreateDialog extends ConsumerWidget {
-  final formKey = GlobalKey<FormState>();
-  final nameController = TextEditingController();
-  PersonCreateDialog({super.key});
+class PersonCreateDialog extends HookConsumerWidget {
+  const PersonCreateDialog({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final nameController = useTextEditingController();
+    final formKey = useMemoized(
+      () => GlobalKey<FormState>(),
+    );
+
     final Uint8List? profilePicture = ref.watch(personCreatorProfilePictureBytesProvider);
     final Reference? reference = ref.watch(personCreatorProfilePictureNameRefProvider);
+    logger.d("build: ${ref.read(personCreatorProfilePictureNameRefProvider)}");
+
     return Form(
       key: formKey,
       child: AlertDialog(
@@ -62,15 +65,17 @@ class PersonCreateDialog extends ConsumerWidget {
             const Divider(),
             if (profilePicture == null)
               IconButton(
-                onPressed: () => selectAndUploadPicture(context, ref),
+                onPressed: () => selectAndUploadPicture(context, ref, formKey, nameController),
                 icon: const Icon(Icons.add_a_photo),
               ),
             if (profilePicture != null)
               Stack(
                 children: [
-                  Image.memory(profilePicture),
+                  Image.memory(
+                    profilePicture,
+                  ),
                   IconButton(
-                    onPressed: () => selectAndUploadPicture(context, ref),
+                    onPressed: () => selectAndUploadPicture(context, ref, formKey, nameController),
                     icon: const Icon(Icons.edit),
                   ),
                 ],
@@ -93,8 +98,8 @@ class PersonCreateDialog extends ConsumerWidget {
             onPressed: () async {
               if (reference == null) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Please select an image")));
               if (!(formKey.currentState?.validate() ?? false)) return;
-              
-              final result =  ref.read(personNotifierProvider.notifier).createPerson(name: nameController.value.text, path: reference!.fullPath);
+
+              final result = ref.read(personNotifierProvider.notifier).createPerson(name: nameController.value.text, path: reference!.fullPath);
               await showProcessIndicatorWhileWaitingOnFuture(context, result);
               if (!context.mounted) return;
               // ref.invalidate(personsProvider);
@@ -108,7 +113,7 @@ class PersonCreateDialog extends ConsumerWidget {
     );
   }
 
-  Future<void> selectAndUploadPicture(BuildContext context, WidgetRef ref) async {
+  Future<void> selectAndUploadPicture(BuildContext context, WidgetRef ref, GlobalKey<FormState> formKey, TextEditingController nameController) async {
     if (!(formKey.currentState?.validate() ?? false)) return;
     final picked =
         await FilePickerWeb.platform.pickFiles(dialogTitle: "Pick a picture", allowMultiple: false, type: FileType.image, initialDirectory: "Pictures");
@@ -119,5 +124,13 @@ class PersonCreateDialog extends ConsumerWidget {
       ref.read(personCreatorProfilePictureNameRefProvider.notifier).state = reference;
       ref.read(personCreatorProfilePictureBytesProvider.notifier).state = picked.files.first.bytes;
     }
+  }
+
+  static Future<Person?> show(BuildContext context, WidgetRef ref) async {
+    ref.invalidate(personCreatorProfilePictureBytesProvider);
+    ref.invalidate(personCreatorProfilePictureNameRefProvider);
+
+    logger.d("Static: ${ref.read(personCreatorProfilePictureNameRefProvider)}");
+    return await showDialog<Person>(context: context, builder: (context) => const PersonCreateDialog(), barrierDismissible: false);
   }
 }
