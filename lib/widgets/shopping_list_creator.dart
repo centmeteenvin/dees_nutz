@@ -3,11 +3,10 @@ import 'dart:typed_data';
 import 'package:diw/main.dart';
 import 'package:diw/models/person.dart';
 import 'package:diw/providers.dart';
+import 'package:diw/providers/file_notifier.dart';
 import 'package:diw/providers/person_notifier.dart';
 import 'package:diw/providers/shopping_list_notifier.dart';
 import 'package:diw/utils.dart';
-import 'package:file_picker/_internal/file_picker_web.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -94,13 +93,13 @@ class ShoppingListCreatorDialog extends ConsumerWidget {
 
   _uploadShoppingListImage(BuildContext context, WidgetRef ref) async {
     if (!(formKey.currentState?.validate() ?? false)) return;
-    final result = await FilePickerWeb.platform.pickFiles(allowMultiple: false, type: FileType.image);
-    if (result == null || result.files.isEmpty) return;
-    final reference = FirebaseStorage.instance.ref("shoppingListPictures/${titleController.value.text}.${result.files.first.extension}");
+    final notifier = ref.read(fileNotifierProvider.notifier);
+    final result = await notifier.pickFile();
+    if (result == null) return;
     // ignore: use_build_context_synchronously
-    await showProcessIndicatorWhileWaitingOnFuture(context, reference.putData(result.files.first.bytes!));
+    final reference = await showProcessIndicatorWhileWaitingOnFuture(context, notifier.uploadFile(FileCollection.shoppingList, "/${titleController.value.text}.${result.extension}"));
     ref.read(shoppingListCreatorImageReferenceProvider.notifier).state = reference;
-    ref.read(shoppingListCreatorImageBytesProvider.notifier).state = result.files.first.bytes;
+    ref.read(shoppingListCreatorImageBytesProvider.notifier).state = await result.readAsBytes();
   }
 
   _createShoppingList(BuildContext context, WidgetRef ref) async {

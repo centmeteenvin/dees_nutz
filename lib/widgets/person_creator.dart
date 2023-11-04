@@ -2,10 +2,9 @@ import 'dart:typed_data';
 
 import 'package:diw/main.dart';
 import 'package:diw/models/person.dart';
+import 'package:diw/providers/file_notifier.dart';
 import 'package:diw/providers/person_notifier.dart';
 import 'package:diw/utils.dart';
-import 'package:file_picker/_internal/file_picker_web.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -115,14 +114,13 @@ class PersonCreateDialog extends HookConsumerWidget {
 
   Future<void> selectAndUploadPicture(BuildContext context, WidgetRef ref, GlobalKey<FormState> formKey, TextEditingController nameController) async {
     if (!(formKey.currentState?.validate() ?? false)) return;
-    final picked =
-        await FilePickerWeb.platform.pickFiles(dialogTitle: "Pick a picture", allowMultiple: false, type: FileType.image, initialDirectory: "Pictures");
+    final notifier = ref.read(fileNotifierProvider.notifier);
+    final picked = await notifier.pickFile();
     if (picked != null) {
-      final reference = FirebaseStorage.instance.ref("profilePictures/${nameController.value.text}.${picked.files.first.extension}");
       // ignore: use_build_context_synchronously
-      await showProcessIndicatorWhileWaitingOnFuture(context, reference.putData(picked.files.first.bytes!));
+      final reference = await showProcessIndicatorWhileWaitingOnFuture(context, notifier.uploadFile(FileCollection.profilePicture, "${nameController.text}.${picked.extension}"));
       ref.read(personCreatorProfilePictureNameRefProvider.notifier).state = reference;
-      ref.read(personCreatorProfilePictureBytesProvider.notifier).state = picked.files.first.bytes;
+      ref.read(personCreatorProfilePictureBytesProvider.notifier).state = await picked.readAsBytes();
     }
   }
 

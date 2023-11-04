@@ -154,5 +154,21 @@ class _PictureUrlProviderElement
   @override
   String get storagePath => (origin as PictureUrlProvider).storagePath;
 }
+
+String _$fileNotifierHash() => r'44b03696e7043f2d4838154bd38b57710d3d5deb';
+
+/// See also [FileNotifier].
+@ProviderFor(FileNotifier)
+final fileNotifierProvider =
+    AutoDisposeNotifierProvider<FileNotifier, void>.internal(
+  FileNotifier.new,
+  name: r'fileNotifierProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product') ? null : _$fileNotifierHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$FileNotifier = AutoDisposeNotifier<void>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member
