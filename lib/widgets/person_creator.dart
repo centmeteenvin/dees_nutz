@@ -36,26 +36,38 @@ class PersonCreateWidget extends ConsumerWidget {
   }
 }
 
-class PersonEditWidget extends ConsumerWidget {
+class PersonEditWidget extends HookConsumerWidget {
   final String personId;
   final Widget child;
   const PersonEditWidget(this.personId, {super.key, required this.child});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isCalled = useState(false);
+
     final person = ref.watch(personProvider(personId).select((value) => value.value));
     return IconButton(
         onPressed: () async {
+          if (person == null) {
+            isCalled.value = false;
+            return;
+          }
+          if (isCalled.value) return;
+          isCalled.value = true;
           await PersonCreateDialog.show(
             context,
             ref,
             dialogTitle: "Edit Person",
             commitButtonText: "Edit",
-            commitFunction: (newName, profilePicturePath) async {},
+            commitFunction: (newName, profilePicturePath) async {
+              final PersonNotifier personNotifier = ref.read(personNotifierProvider.notifier);
+              await personNotifier.updatePerson(person.copyWith(name: newName));
+            },
             initialData: person,
             returnScaffoldMessage: "Successfully edited person.",
             shouldDelete: false
           );
+          isCalled.value = false;
         },
         icon: child);
   }
