@@ -168,7 +168,7 @@ final personsProvider = AutoDisposeStreamProvider<List<Person>>.internal(
 );
 
 typedef PersonsRef = AutoDisposeStreamProviderRef<List<Person>>;
-String _$personNotifierHash() => r'5ad212c4922276c34a63b7d71be94bf65929b721';
+String _$personNotifierHash() => r'fc4e126820e12e56dca241871d66e4c7d5c57881';
 
 /// See also [PersonNotifier].
 @ProviderFor(PersonNotifier)
