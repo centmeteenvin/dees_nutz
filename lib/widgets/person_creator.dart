@@ -118,7 +118,13 @@ class PersonCreateDialog extends HookConsumerWidget {
     final picked = await notifier.pickFile();
     if (picked != null) {
       // ignore: use_build_context_synchronously
-      final reference = await showProcessIndicatorWhileWaitingOnFuture(context, notifier.uploadFile(FileCollection.profilePicture, "${nameController.text}.${picked.extension}"));
+      final reference = await showProcessIndicatorWhileWaitingOnFuture(
+          context,
+          notifier.uploadFile(
+            picked,
+            FileCollection.profilePicture,
+            "${nameController.text}.${picked.extension}",
+          ));
       ref.read(personCreatorProfilePictureNameRefProvider.notifier).state = reference;
       ref.read(personCreatorProfilePictureBytesProvider.notifier).state = await picked.readAsBytes();
     }

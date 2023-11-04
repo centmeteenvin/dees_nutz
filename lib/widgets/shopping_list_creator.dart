@@ -97,7 +97,13 @@ class ShoppingListCreatorDialog extends ConsumerWidget {
     final result = await notifier.pickFile();
     if (result == null) return;
     // ignore: use_build_context_synchronously
-    final reference = await showProcessIndicatorWhileWaitingOnFuture(context, notifier.uploadFile(FileCollection.shoppingList, "/${titleController.value.text}.${result.extension}"));
+    final reference = await showProcessIndicatorWhileWaitingOnFuture(
+        context,
+        notifier.uploadFile(
+          result,
+          FileCollection.shoppingList,
+          "/${titleController.value.text}.${result.extension}",
+        ));
     ref.read(shoppingListCreatorImageReferenceProvider.notifier).state = reference;
     ref.read(shoppingListCreatorImageBytesProvider.notifier).state = await result.readAsBytes();
   }
@@ -110,11 +116,11 @@ class ShoppingListCreatorDialog extends ConsumerWidget {
     await showProcessIndicatorWhileWaitingOnFuture(
         context,
         ref.read(shoppingListNotifierProvider.notifier).create(
-          title: titleController.value.text,
-          date: DateFormat("dd/MM/yyyy").parse(dateController.value.text),
-          picture: ref.read(shoppingListCreatorImageReferenceProvider)!.fullPath,
-          participants: ref.read(shoppingListCreatorPersonSelectorSelectedPersonProvider),
-        ));
+              title: titleController.value.text,
+              date: DateFormat("dd/MM/yyyy").parse(dateController.value.text),
+              picture: ref.read(shoppingListCreatorImageReferenceProvider)!.fullPath,
+              participants: ref.read(shoppingListCreatorPersonSelectorSelectedPersonProvider),
+            ));
     if (context.mounted) Navigator.pop(context);
   }
 }
@@ -123,7 +129,6 @@ final shoppingListCreatorPersonSelectorSelectedPersonProvider = StateProvider<Li
   final currentPersonId = ref.read(currentSelectedPersonProviderId);
   if (currentPersonId == null) return [];
   return ref.watch(personProvider(currentPersonId)).hasValue ? [ref.read(personProvider(currentPersonId)).value!] : [];
-
 });
 
 class ShoppingListCreatorPersonSelector extends ConsumerWidget {
