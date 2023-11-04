@@ -6,7 +6,7 @@ part of 'file_notifier.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$pictureUrlHash() => r'afa9bee6873df89545ed85f646dfdc30a920a8f6';
+String _$pictureUrlHash() => r'275b50e80b592a5e78634a3b71f8561604625344';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -72,7 +72,7 @@ class PictureUrlFamily extends Family<AsyncValue<String>> {
 }
 
 /// See also [pictureUrl].
-class PictureUrlProvider extends AutoDisposeFutureProvider<String> {
+class PictureUrlProvider extends FutureProvider<String> {
   /// See also [pictureUrl].
   PictureUrlProvider(
     String storagePath,
@@ -124,7 +124,7 @@ class PictureUrlProvider extends AutoDisposeFutureProvider<String> {
   }
 
   @override
-  AutoDisposeFutureProviderElement<String> createElement() {
+  FutureProviderElement<String> createElement() {
     return _PictureUrlProviderElement(this);
   }
 
@@ -142,13 +142,13 @@ class PictureUrlProvider extends AutoDisposeFutureProvider<String> {
   }
 }
 
-mixin PictureUrlRef on AutoDisposeFutureProviderRef<String> {
+mixin PictureUrlRef on FutureProviderRef<String> {
   /// The parameter `storagePath` of this provider.
   String get storagePath;
 }
 
-class _PictureUrlProviderElement
-    extends AutoDisposeFutureProviderElement<String> with PictureUrlRef {
+class _PictureUrlProviderElement extends FutureProviderElement<String>
+    with PictureUrlRef {
   _PictureUrlProviderElement(super.provider);
 
   @override

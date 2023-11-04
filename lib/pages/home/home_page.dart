@@ -179,9 +179,21 @@ class HomePageSideBarPersonSelectorContent extends ConsumerWidget {
     return SingleChildScrollView(
       child: Column(
         children: [
-          PersonAvatar(
-            person: currentPerson,
-            size: 60,
+          Stack(
+            alignment: Alignment.topRight,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 20, left: 20, right: 20),
+                child: PersonAvatar(
+                  person: currentPerson,
+                  size: 60,
+                ),
+              ),
+              if (currentPerson != null)
+              IconButton(onPressed: () {
+                
+              }, icon: const Icon(Icons.edit),)
+            ],
           ),
           const SizedBox(height: 15),
           Text(

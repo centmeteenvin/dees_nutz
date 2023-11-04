@@ -5,7 +5,7 @@ import 'package:image_picker/image_picker.dart';
 
 part 'file_notifier.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 FutureOr<String> pictureUrl(PictureUrlRef ref, String storagePath) async {
   final storage = FirebaseStorage.instance;
   final ref = storage.ref(storagePath);
