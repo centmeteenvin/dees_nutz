@@ -34,6 +34,14 @@ class FileNotifier extends _$FileNotifier {
     await reference.putData(await file.readAsBytes());
     return reference;
   }
+
+  Future<void> deleteFileReference(Reference reference) async {
+    return await reference.delete();
+  }
+
+  Future<void> deleteFile(String storagePath) async {
+    await storage.ref(storagePath).delete();
+  }
 }
 
 extension XFileUtils on XFile {

@@ -87,7 +87,10 @@ class PersonCreateDialog extends HookConsumerWidget {
             autofocus: true,
             onPressed: () async {
               if (reference != null) {
-                await showProcessIndicatorWhileWaitingOnFuture(context, reference.delete());
+                await showProcessIndicatorWhileWaitingOnFuture(
+                  context,
+                  ref.read(fileNotifierProvider.notifier).deleteFileReference(reference),
+                );
               }
               if (context.mounted) Navigator.pop(context);
             },

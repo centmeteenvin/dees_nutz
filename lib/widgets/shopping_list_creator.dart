@@ -81,7 +81,8 @@ class ShoppingListCreatorDialog extends ConsumerWidget {
         actions: [
           TextButton(
               onPressed: () async {
-                await showProcessIndicatorWhileWaitingOnFuture(context, imageRef?.delete());
+                if (imageRef == null) return; 
+                await showProcessIndicatorWhileWaitingOnFuture(context, ref.read(fileNotifierProvider.notifier).deleteFileReference(imageRef));
                 if (context.mounted) Navigator.of(context).pop();
               },
               child: const Text("Cancel")),
