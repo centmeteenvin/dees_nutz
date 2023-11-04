@@ -155,7 +155,7 @@ class _PictureUrlProviderElement
   String get storagePath => (origin as PictureUrlProvider).storagePath;
 }
 
-String _$fileNotifierHash() => r'717f8b3af3a470c8ac970dd84a59eb00b92b0d63';
+String _$fileNotifierHash() => r'abccb2451d721fa8f2b9a7a6f52b82db38c87dd6';
 
 /// See also [FileNotifier].
 @ProviderFor(FileNotifier)

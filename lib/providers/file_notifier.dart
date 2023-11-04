@@ -15,8 +15,10 @@ FutureOr<String> pictureUrl(PictureUrlRef ref, String storagePath) async {
 
 @riverpod
 class FileNotifier extends _$FileNotifier {
+  late final FirebaseStorage storage;
   @override
   void build() {
+    storage = FirebaseStorage.instance;
     return;
   }
 
@@ -26,8 +28,11 @@ class FileNotifier extends _$FileNotifier {
   }
 
   ///Take an XFile Object and uploads it to firebase storage. Returns the associated reference.
+  ///fileName includes extension.
   Future<Reference> uploadFile(XFile file ,FileCollection fileCollection ,String fileName) async {
-    throw UnimplementedError(); // TODO
+    final reference = storage.ref("${fileCollection.collectionName}/$fileName");
+    await reference.putData(await file.readAsBytes());
+    return reference;
   }
 }
 
