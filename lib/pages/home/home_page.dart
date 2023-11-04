@@ -2,6 +2,7 @@ import 'package:diw/main.dart';
 import 'package:diw/models/person.dart';
 import 'package:diw/pages/shopping_list/shopping_list_page.dart';
 import 'package:diw/providers.dart';
+import 'package:diw/providers/file_notifier.dart';
 import 'package:diw/providers/person_notifier.dart';
 import 'package:diw/providers/shopping_list_notifier.dart';
 import 'package:diw/widgets/person_creator.dart';
@@ -119,7 +120,7 @@ class PersonAvatar extends ConsumerWidget {
         ),
       );
     }
-    final futureImageData = ref.watch(pictureProvider(person!.profilePicture));
+    final futureImageData = ref.watch(pictureUrlProvider(person!.profilePicture));
     return futureImageData.maybeWhen(
       orElse: () => const CircularProgressIndicator(),
       error: (error, stackTrace) {
@@ -258,7 +259,7 @@ class HomePageShoppingListGridItem extends ConsumerWidget {
               ),
               child: Builder(
                 builder: (context) {
-                  final futureImage = ref.watch(pictureProvider(shoppingList.picture));
+                  final futureImage = ref.watch(pictureUrlProvider(shoppingList.picture));
                   return futureImage.maybeWhen(
                     orElse: () => const Center(child: CircularProgressIndicator()),
                     data: (url) => Image.network(url),

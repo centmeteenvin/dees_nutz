@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 Future<T?> showProcessIndicatorWhileWaitingOnFuture<T>(BuildContext context, Future<T>? future) async {
+  // ignore: prefer_typing_uninitialized_variables
   var futureValue;
   if (future == null) return null;
   await showDialog(
