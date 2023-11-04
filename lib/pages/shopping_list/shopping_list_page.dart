@@ -3,7 +3,7 @@ import 'package:diw/main.dart';
 import 'package:diw/models/item.dart';
 import 'package:diw/pages/home/home_page.dart';
 import 'package:diw/pages/shopping_list/shopping_list_item.dart';
-import 'package:diw/providers.dart';
+import 'package:diw/providers/file_notifier.dart';
 import 'package:diw/providers/person_notifier.dart';
 import 'package:diw/providers/shopping_list_notifier.dart';
 import 'package:diw/widgets/dialogs.dart';
@@ -22,7 +22,7 @@ class ShoppingListPage extends ConsumerWidget {
     final futureShoppingList = ref.watch(shoppingListProvider(id));
     futureShoppingList.whenOrNull(
       error: (error, stackTrace) {
-        logger.e("Error occured", error: error, stackTrace: stackTrace);
+        logger.e("Error occurred", error: error, stackTrace: stackTrace);
         Navigator.of(context).pop();
       },
     );
@@ -61,7 +61,7 @@ class ShoppingListPageAppBar extends ConsumerWidget implements PreferredSizeWidg
           }
           if (context.mounted) {
             // Navigator.pop(context);
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Sucessfully deleted shoppingList")));
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Successfully deleted shoppingList")));
           }
           
         }, icon: const Icon(Icons.delete_forever))
@@ -113,7 +113,7 @@ class ShoppingListPageBodyImage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final shoppingListUrl = ref.watch(shoppingListProvider(id).select((value) => value.value?.picture));
     if (shoppingListUrl == null) return Container();
-    final pictureDownloadUrl = ref.watch(pictureProvider(shoppingListUrl));
+    final pictureDownloadUrl = ref.watch(pictureUrlProvider(shoppingListUrl));
     return pictureDownloadUrl.maybeWhen(
       orElse: () => const Center(child: CircularProgressIndicator()),
       data: (data) => ClipRRect(
