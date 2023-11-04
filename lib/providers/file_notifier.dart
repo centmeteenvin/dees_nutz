@@ -22,7 +22,7 @@ class FileNotifier extends _$FileNotifier {
 
   ///Prompts the user to pick a file, will return null if unsuccessful.
   Future<XFile?> pickFile() async {
-    throw UnimplementedError(); //TODO
+    return await ImagePicker().pickImage(source: ImageSource.camera);
   }
 
   ///Take an XFile Object and uploads it to firebase storage. Returns the associated reference.
