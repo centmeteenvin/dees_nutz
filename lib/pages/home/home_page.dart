@@ -190,9 +190,8 @@ class HomePageSideBarPersonSelector extends ConsumerWidget {
                       final personNotifier = ref.read(personNotifierProvider.notifier);
                       await showProcessIndicatorWhileWaitingOnFuture(context, personNotifier.deletePerson(person));
                       if (!context.mounted) return;
-                      ref.read(currentSelectedPersonProviderId.notifier).state = null; 
+                      ref.read(currentSelectedPersonProviderId.notifier).state = null;
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("SuccessFully Deleted Person")));
-
                     },
                     icon: const Icon(Icons.delete_forever)),
               ],
@@ -271,59 +270,70 @@ class HomePageShoppingListGridItem extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final futureShoppingList = ref.watch(shoppingListProvider(id));
+    final currentPersonId = ref.watch(currentSelectedPersonProviderId);
     return futureShoppingList.maybeWhen(
       orElse: () => const Card(child: GridTile(child: CircularProgressIndicator())),
-      data: (shoppingList) => Card(
-        clipBehavior: Clip.antiAlias,
-        child: Stack(
-          children: [
-            GridTile(
-              header: GridTileBar(
-                title: Text(shoppingList.title),
-                subtitle: Text(DateFormat("dd/MM/yyyy").format(shoppingList.date)),
-                backgroundColor: Theme.of(context).colorScheme.primary,
-              ),
-              footer: GridTileBar(
-                backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
-                title: Wrap(
-                  direction: Axis.vertical,
-                  clipBehavior: Clip.antiAlias,
-                  children: shoppingList.participantEntries
-                      .take(4)
-                      .map(
-                        (entry) => ref.watch(personProvider(entry.participantId)).maybeWhen(
-                              orElse: () => Container(),
-                              data: (person) => PersonAvatar(person: person),
-                            ),
-                      )
-                      .toList(),
+      data: (shoppingList) {
+        final personEntry = shoppingList.participantEntries.firstWhere((element) => element.participantId == currentPersonId);
+        final personCost = personEntry.currentCost;
+        final totalCost = shoppingList.total;
+        return Card(
+          clipBehavior: Clip.antiAlias,
+          child: Stack(
+            children: [
+              GridTile(
+                header: GridTileBar(
+                  title: Text(shoppingList.title),
+                  subtitle: Text(DateFormat("dd/MM/yyyy").format(shoppingList.date)),
+                  trailing: Text(
+                    "${NumberFormat("####.00").format(personCost)}/\n${NumberFormat("####.00").format(totalCost)}€",
+                    textAlign: TextAlign.end,
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                ),
+                footer: GridTileBar(
+                  backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+                  title: Wrap(
+                    direction: Axis.vertical,
+                    clipBehavior: Clip.antiAlias,
+                    children: shoppingList.participantEntries
+                        .take(4)
+                        .map(
+                          (entry) => ref.watch(personProvider(entry.participantId)).maybeWhen(
+                                orElse: () => Container(),
+                                data: (person) => PersonAvatar(person: person),
+                              ),
+                        )
+                        .toList(),
+                  ),
+                ),
+                child: Builder(
+                  builder: (context) {
+                    final futureImage = ref.watch(pictureUrlProvider(shoppingList.picture));
+                    return futureImage.maybeWhen(
+                      orElse: () => const Center(child: CircularProgressIndicator()),
+                      data: (url) => Image.network(url),
+                    );
+                  },
                 ),
               ),
-              child: Builder(
-                builder: (context) {
-                  final futureImage = ref.watch(pictureUrlProvider(shoppingList.picture));
-                  return futureImage.maybeWhen(
-                    orElse: () => const Center(child: CircularProgressIndicator()),
-                    data: (url) => Image.network(url),
-                  );
-                },
-              ),
-            ),
-            Material(
-              color: Colors.transparent,
-              child: InkWell(
-                hoverColor: Colors.black.withAlpha(50),
-                splashColor: Colors.redAccent.withAlpha(50),
-                onTap: () {
-                  Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => ShoppingListPage(id),
-                  ));
-                },
-              ),
-            )
-          ],
-        ),
-      ),
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  hoverColor: Colors.black.withAlpha(50),
+                  splashColor: Colors.redAccent.withAlpha(50),
+                  onTap: () {
+                    Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => ShoppingListPage(id),
+                    ));
+                  },
+                ),
+              )
+            ],
+          ),
+        );
+      },
     );
   }
 }
