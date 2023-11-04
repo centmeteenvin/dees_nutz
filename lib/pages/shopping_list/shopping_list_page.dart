@@ -89,7 +89,7 @@ class ShoppingListPageBody extends ConsumerWidget {
             flex: 2,
             child: Column(
               children: [
-                Expanded(child: ShoppingListPageBodyImage(id)),
+                Expanded(child: Center(child: ShoppingListPageBodyImage(id))),
                 Flexible(child: ShoppingListPageBodyPeople(id)),
               ],
             ),
@@ -119,10 +119,7 @@ class ShoppingListPageBodyImage extends ConsumerWidget {
       data: (data) => ClipRRect(
         borderRadius: BorderRadius.circular(20),
         child: InteractiveViewer(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints.expand(),
-            child: Image.network(data, fit: BoxFit.cover),
-          ),
+          child: Image.network(data, fit: BoxFit.cover),
         ),
       ),
     );
