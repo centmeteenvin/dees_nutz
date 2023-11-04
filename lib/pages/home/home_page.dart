@@ -190,9 +190,7 @@ class HomePageSideBarPersonSelectorContent extends ConsumerWidget {
                 ),
               ),
               if (currentPerson != null)
-              IconButton(onPressed: () {
-                
-              }, icon: const Icon(Icons.edit),)
+              PersonEditWidget(currentPerson.id, child: const Icon(Icons.edit))
             ],
           ),
           const SizedBox(height: 15),

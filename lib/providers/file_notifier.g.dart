@@ -155,7 +155,7 @@ class _PictureUrlProviderElement extends FutureProviderElement<String>
   String get storagePath => (origin as PictureUrlProvider).storagePath;
 }
 
-String _$fileNotifierHash() => r'a4ec1d795bd637a9ee1dfce987afe7322a9d5796';
+String _$fileNotifierHash() => r'1f9155644333aafbe5c50e24652bee4d6140300d';
 
 /// See also [FileNotifier].
 @ProviderFor(FileNotifier)

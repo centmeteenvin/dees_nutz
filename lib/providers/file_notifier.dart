@@ -47,6 +47,9 @@ class FileNotifier extends _$FileNotifier {
     await reference.delete();
     await reference.putData(await file.readAsBytes());
   }
+  Reference getFileReference(String storagePath) {
+    return storage.ref(storagePath);
+  }
 }
 
 extension XFileUtils on XFile {
