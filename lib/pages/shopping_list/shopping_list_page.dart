@@ -263,12 +263,13 @@ class ShoppingListPageBodyPeopleItem extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final asyncPerson = ref.watch(personProvider(participantId));
+    final isMobile = ref.watch(isMobileProvider);
     return asyncPerson.maybeWhen(
       orElse: () => const Center(
         child: CircularProgressIndicator(),
       ),
       data: (person) => LayoutBuilder(builder: (context, constraints) {
-        if (constraints.maxWidth >= 1000) {
+        if (!isMobile) {
           return Row(
             children: [
               PersonAvatar(person: person),
