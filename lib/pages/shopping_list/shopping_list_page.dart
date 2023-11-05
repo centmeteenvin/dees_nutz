@@ -52,11 +52,13 @@ class ShoppingListPage extends ConsumerWidget {
               child: ShoppingListPageItemListView(id),
             ),
             floatingActionButton: ShoppingListPageFloatingActionButton(id),
-            drawer: Drawer(child: Padding(
+            drawer: Drawer(
+                child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: ShoppingListPageBodyPeople(id),
             )),
-            endDrawer: Drawer(child: Padding(
+            endDrawer: Drawer(
+                child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: ShoppingListPageBodyImage(id),
             )),
@@ -116,16 +118,20 @@ class ShoppingListPageAppBarMobile extends ConsumerWidget implements PreferredSi
       leading: Row(
         children: [
           IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.arrow_back)),
-          IconButton(onPressed: () {
-            ref.read(shoppingListPageScaffoldKeyProvider).currentState?.openDrawer();
-          }, icon: const Icon(Icons.people)),
+          IconButton(
+              onPressed: () {
+                ref.read(shoppingListPageScaffoldKeyProvider).currentState?.openDrawer();
+              },
+              icon: const Icon(Icons.people)),
         ],
       ),
       leadingWidth: 112,
       actions: [
-        IconButton(onPressed: () {
-          ref.read(shoppingListPageScaffoldKeyProvider).currentState?.openEndDrawer();
-        }, icon: const Icon(Icons.image)),
+        IconButton(
+            onPressed: () {
+              ref.read(shoppingListPageScaffoldKeyProvider).currentState?.openEndDrawer();
+            },
+            icon: const Icon(Icons.image)),
         IconButton(
             onPressed: () async {
               final result = await ConfirmDialog.show(context, title: "Delete ShoppingList", description: "This action is permanent and cannot be reversed");
@@ -255,26 +261,57 @@ class ShoppingListPageBodyPeopleItem extends ConsumerWidget {
       orElse: () => const Center(
         child: CircularProgressIndicator(),
       ),
-      data: (person) => Row(
-        children: [
-          PersonAvatar(person: person),
-          const SizedBox(width: 5),
-          ShoppingListPageBodyPeopleItemCost(id, participantId: participantId),
-          const Spacer(),
-          Expanded(
-              child: Text(
-            person.name,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.end,
-          )),
-          const SizedBox(width: 20),
-          IconButton(
-            onPressed: () => removePerson(context, ref),
-            icon: const Icon(Icons.person_remove),
-          ),
-          const SizedBox(width: 20),
-        ],
-      ),
+      data: (person) => LayoutBuilder(builder: (context, constraints) {
+        if (constraints.maxWidth >= 1000) {
+          return Row(
+            children: [
+              PersonAvatar(person: person),
+              const SizedBox(width: 5),
+              ShoppingListPageBodyPeopleItemCost(id, participantId: participantId),
+              const Spacer(),
+              Expanded(
+                  child: Text(
+                person.name,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.end,
+              )),
+              const SizedBox(width: 20),
+              IconButton(
+                onPressed: () => removePerson(context, ref),
+                icon: const Icon(Icons.person_remove),
+              ),
+              const SizedBox(width: 20),
+            ],
+          );
+        }
+        return Row(
+          children: [
+            PersonAvatar(person: person, size: 40),
+            Expanded(
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                          child: Text(
+                        person.name,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.end,
+                      )),
+                      const SizedBox(width: 20),
+                      IconButton(
+                        onPressed: () => removePerson(context, ref),
+                        icon: const Icon(Icons.person_remove),
+                      ),
+                    ],
+                  ),
+                  ShoppingListPageBodyPeopleItemCost(id, participantId: participantId),
+                ],
+              ),
+            ),
+          ],
+        );
+      }),
     );
   }
 
