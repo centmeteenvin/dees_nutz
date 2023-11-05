@@ -81,7 +81,7 @@ class ShoppingListCreatorDialog extends ConsumerWidget {
         actions: [
           TextButton(
               onPressed: () async {
-                if (imageRef == null) return; 
+                if (imageRef == null) return Navigator.of(context).pop(); 
                 await showProcessIndicatorWhileWaitingOnFuture(context, ref.read(fileNotifierProvider.notifier).deleteFileReference(imageRef));
                 if (context.mounted) Navigator.of(context).pop();
               },
