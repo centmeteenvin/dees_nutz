@@ -13,6 +13,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+final isMobileProvider = StateProvider<bool>((ref) => false,);
+
+final shoppingListPageScaffoldKeyProvider = Provider.autoDispose<GlobalKey<ScaffoldState>>(
+  (ref) => GlobalKey<ScaffoldState>(),
+);
+
 class ShoppingListPage extends ConsumerWidget {
   final String id;
   const ShoppingListPage(this.id, {super.key});
@@ -20,6 +26,7 @@ class ShoppingListPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final futureShoppingList = ref.watch(shoppingListProvider(id));
+    final scaffoldKey = ref.watch(shoppingListPageScaffoldKeyProvider);
     futureShoppingList.whenOrNull(
       error: (error, stackTrace) {
         logger.e("Error occurred", error: error, stackTrace: stackTrace);
@@ -30,18 +37,47 @@ class ShoppingListPage extends ConsumerWidget {
       orElse: () => const Scaffold(
         body: Center(child: CircularProgressIndicator()),
       ),
-      data: (data) => Scaffold(
-        appBar: ShoppingListPageAppBar(id),
-        body: ShoppingListPageBody(id),
-        floatingActionButton: ShoppingListPageFloatingActionButton(id),
-      ),
+      data: (data) => LayoutBuilder(builder: (context, constraints) {
+        if (constraints.maxWidth >= 1000) {
+          Future(() => ref.read(isMobileProvider.notifier).state = false);
+          return Scaffold(
+            key: scaffoldKey,
+            appBar: ShoppingListPageAppBarDesktop(id),
+            body: ShoppingListPageBodyDesktop(id),
+            floatingActionButton: ShoppingListPageFloatingActionButton(id),
+          );
+        } else {
+          Future(() => ref.read(isMobileProvider.notifier).state = true);
+
+          return Scaffold(
+            key: scaffoldKey,
+            appBar: ShoppingListPageAppBarMobile(id),
+            body: Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: ShoppingListPageItemListView(id),
+            ),
+            floatingActionButton: ShoppingListPageFloatingActionButton(id),
+            drawer: Drawer(
+                child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ShoppingListPageBodyPeople(id),
+            )),
+            endDrawer: Drawer(
+                child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ShoppingListPageBodyImage(id),
+            )),
+            endDrawerEnableOpenDragGesture: false,
+          );
+        }
+      }),
     );
   }
 }
 
-class ShoppingListPageAppBar extends ConsumerWidget implements PreferredSizeWidget {
+class ShoppingListPageAppBarDesktop extends ConsumerWidget implements PreferredSizeWidget {
   final String id;
-  const ShoppingListPageAppBar(this.id, {super.key});
+  const ShoppingListPageAppBarDesktop(this.id, {super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -51,20 +87,21 @@ class ShoppingListPageAppBar extends ConsumerWidget implements PreferredSizeWidg
       title: Text(shoppingListTitle),
       centerTitle: true,
       actions: [
-        IconButton(onPressed: () async {
-          final result = await ConfirmDialog.show(context, title: "Delete ShoppingList", description: "This action is permanent and cannot be reversed");
-          if (!result) return; 
-          final shoppingList = await ref.read(shoppingListProvider(id).future);
-          if (context.mounted) {
-            await ref.read(shoppingListNotifierProvider.notifier).deleteShoppingList(shoppingList);
-            // await showProcessIndicatorWhileWaitingOnFuture(context, ref.read(shoppingListNotifierProvider.notifier).deleteShoppingList(shoppingList));
-          }
-          if (context.mounted) {
-            // Navigator.pop(context);
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Successfully deleted shoppingList")));
-          }
-          
-        }, icon: const Icon(Icons.delete_forever))
+        IconButton(
+            onPressed: () async {
+              final result = await ConfirmDialog.show(context, title: "Delete ShoppingList", description: "This action is permanent and cannot be reversed");
+              if (!result) return;
+              final shoppingList = await ref.read(shoppingListProvider(id).future);
+              if (context.mounted) {
+                await ref.read(shoppingListNotifierProvider.notifier).deleteShoppingList(shoppingList);
+                // await showProcessIndicatorWhileWaitingOnFuture(context, ref.read(shoppingListNotifierProvider.notifier).deleteShoppingList(shoppingList));
+              }
+              if (context.mounted) {
+                // Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Successfully deleted shoppingList")));
+              }
+            },
+            icon: const Icon(Icons.delete_forever))
       ],
     );
   }
@@ -73,9 +110,60 @@ class ShoppingListPageAppBar extends ConsumerWidget implements PreferredSizeWidg
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }
 
-class ShoppingListPageBody extends ConsumerWidget {
+class ShoppingListPageAppBarMobile extends ConsumerWidget implements PreferredSizeWidget {
   final String id;
-  const ShoppingListPageBody(this.id, {super.key});
+  const ShoppingListPageAppBarMobile(this.id, {super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final shoppingListTitle =
+        ref.watch(shoppingListProvider(id).select((asyncShoppingList) => asyncShoppingList.hasValue ? asyncShoppingList.value!.title : "Loading"));
+    return AppBar(
+      title: Text(shoppingListTitle),
+      centerTitle: true,
+      leading: Row(
+        children: [
+          IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.arrow_back)),
+          IconButton(
+              onPressed: () {
+                ref.read(shoppingListPageScaffoldKeyProvider).currentState?.openDrawer();
+              },
+              icon: const Icon(Icons.people)),
+        ],
+      ),
+      leadingWidth: 112,
+      actions: [
+        IconButton(
+            onPressed: () {
+              ref.read(shoppingListPageScaffoldKeyProvider).currentState?.openEndDrawer();
+            },
+            icon: const Icon(Icons.image)),
+        IconButton(
+            onPressed: () async {
+              final result = await ConfirmDialog.show(context, title: "Delete ShoppingList", description: "This action is permanent and cannot be reversed");
+              if (!result) return;
+              final shoppingList = await ref.read(shoppingListProvider(id).future);
+              if (context.mounted) {
+                await ref.read(shoppingListNotifierProvider.notifier).deleteShoppingList(shoppingList);
+                // await showProcessIndicatorWhileWaitingOnFuture(context, ref.read(shoppingListNotifierProvider.notifier).deleteShoppingList(shoppingList));
+              }
+              if (context.mounted) {
+                // Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Successfully deleted shoppingList")));
+              }
+            },
+            icon: const Icon(Icons.delete_forever)),
+      ],
+    );
+  }
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+}
+
+class ShoppingListPageBodyDesktop extends ConsumerWidget {
+  final String id;
+  const ShoppingListPageBodyDesktop(this.id, {super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -86,7 +174,7 @@ class ShoppingListPageBody extends ConsumerWidget {
         // crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Flexible(
-            flex: 2,
+            flex: 4,
             child: Column(
               children: [
                 Expanded(child: Center(child: ShoppingListPageBodyImage(id))),
@@ -96,7 +184,7 @@ class ShoppingListPageBody extends ConsumerWidget {
           ),
           const SizedBox(width: 8.0),
           Expanded(
-            flex: 3,
+            flex: 5,
             child: ShoppingListPageItemListView(id),
           )
         ],
@@ -179,26 +267,57 @@ class ShoppingListPageBodyPeopleItem extends ConsumerWidget {
       orElse: () => const Center(
         child: CircularProgressIndicator(),
       ),
-      data: (person) => Row(
-        children: [
-          PersonAvatar(person: person),
-          const SizedBox(width: 5),
-          ShoppingListPageBodyPeopleItemCost(id,participantId: participantId),
-          const Spacer(),
-          Expanded(
-              child: Text(
-            person.name,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.end,
-          )),
-          const SizedBox(width: 20),
-          IconButton(
-            onPressed: () => removePerson(context, ref),
-            icon: const Icon(Icons.person_remove),
-          ),
-          const SizedBox(width: 20),
-        ],
-      ),
+      data: (person) => LayoutBuilder(builder: (context, constraints) {
+        if (constraints.maxWidth >= 1000) {
+          return Row(
+            children: [
+              PersonAvatar(person: person),
+              const SizedBox(width: 5),
+              ShoppingListPageBodyPeopleItemCost(id, participantId: participantId),
+              const Spacer(),
+              Expanded(
+                  child: Text(
+                person.name,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.end,
+              )),
+              const SizedBox(width: 20),
+              IconButton(
+                onPressed: () => removePerson(context, ref),
+                icon: const Icon(Icons.person_remove),
+              ),
+              const SizedBox(width: 20),
+            ],
+          );
+        }
+        return Row(
+          children: [
+            PersonAvatar(person: person, size: 40),
+            Expanded(
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                          child: Text(
+                        person.name,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.end,
+                      )),
+                      const SizedBox(width: 20),
+                      IconButton(
+                        onPressed: () => removePerson(context, ref),
+                        icon: const Icon(Icons.person_remove),
+                      ),
+                    ],
+                  ),
+                  ShoppingListPageBodyPeopleItemCost(id, participantId: participantId),
+                ],
+              ),
+            ),
+          ],
+        );
+      }),
     );
   }
 
@@ -215,7 +334,6 @@ class ShoppingListPageBodyPeopleItem extends ConsumerWidget {
   }
 }
 
-
 class ShoppingListPageBodyPeopleItemCost extends ConsumerWidget {
   final String shoppingListId;
   final String participantId;
@@ -227,7 +345,8 @@ class ShoppingListPageBodyPeopleItemCost extends ConsumerWidget {
     final personCost = ref.watch(shoppingListProvider(shoppingListId).select((value) {
       return value.value?.participantEntries.firstWhereOrNull((entry) => entry.participantId == participantId)?.currentCost ?? 0;
     }));
-    return Text("${NumberFormat("####.00").format(personCost)}/${NumberFormat("####.00").format(totalCost)} EUR -> ${NumberFormat("##.0%").format(personCost/totalCost)}");
+    return Text(
+        "${NumberFormat("####.00").format(personCost)}/${NumberFormat("####.00").format(totalCost)} EUR -> ${NumberFormat("##.0%").format(personCost / totalCost)}");
   }
 }
 
@@ -245,7 +364,7 @@ class ShoppingListPageFloatingActionButton extends ConsumerWidget {
         if (item == null) return;
         final shoppingList = await ref.read(shoppingListProvider(id).future);
         await ref.read(shoppingListNotifierProvider.notifier).addItemToShoppingList(shoppingList, item);
-       },
+      },
       child: const Icon(Icons.add),
     );
   }

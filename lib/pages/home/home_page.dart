@@ -63,9 +63,9 @@ class HomePageBody extends StatelessWidget {
       padding: EdgeInsets.all(12.0),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
+        // mainAxisSize: MainAxisSize.min,
         children: [
-          Expanded(child: HomePageShoppingListGrid()),
+          Expanded(child: ClipRect(child: HomePageShoppingListGrid())),
           Divider(),
           HomePageCreateShoppingListButton(),
           // Spacer(),
@@ -245,20 +245,22 @@ class HomePageShoppingListGrid extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentPersonId = ref.watch(currentSelectedPersonProviderId);
+    const itemWidth =250.0;
     if (currentPersonId == null) return const Text("Select a person");
     final shoppingListIds = ref.watch(personProvider(currentPersonId).select((value) => value.value?.shoppingListIds));
     if (shoppingListIds == null) return Container();
     // logger.i(currentPerson);
-    return SingleChildScrollView(
-      clipBehavior: Clip.antiAlias,
-      scrollDirection: Axis.vertical,
-      child: GridView.count(
-        crossAxisCount: 6,
-        childAspectRatio: 0.75,
-        shrinkWrap: true,
-        semanticChildCount: shoppingListIds.length,
-        children: shoppingListIds.map((id) => HomePageShoppingListGridItem(id)).toList(),
-      ),
+    return GridView.count(
+      crossAxisCount: MediaQuery.sizeOf(context).width ~/ itemWidth,
+      childAspectRatio: 0.75,
+      shrinkWrap: true,
+      semanticChildCount: shoppingListIds.length,
+      children: shoppingListIds
+          .map((id) => SizedBox(
+                width: itemWidth,
+                child: HomePageShoppingListGridItem(id),
+              ))
+          .toList(),
     );
   }
 }
