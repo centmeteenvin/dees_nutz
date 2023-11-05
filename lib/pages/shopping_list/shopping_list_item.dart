@@ -65,7 +65,8 @@ class ShoppingListPageItemListViewItemDesktop extends ConsumerWidget {
         widgets.addAll(item.participantEntries.map((entry) => ShoppingListPageListViewItemEntry(item: item, participantId: entry.participantId)));
 
         if (!isMobile) {
-          return ConstrainedBox(
+          return Container(
+            color: item.participantEntries.any((element) => element.weight != 0) ? Colors.transparent : Theme.of(context).disabledColor,
             constraints: const BoxConstraints(maxHeight: 80),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
