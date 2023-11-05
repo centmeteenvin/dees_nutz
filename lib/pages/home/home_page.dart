@@ -75,13 +75,17 @@ class HomePageBody extends StatelessWidget {
   }
 }
 
-class HomePageCreateShoppingListButton extends StatelessWidget {
+class HomePageCreateShoppingListButton extends ConsumerWidget {
   const HomePageCreateShoppingListButton({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isPersonSelected = ref.watch(currentSelectedPersonProviderId.select((value) => value != null));
     return FloatingActionButton(
+      backgroundColor: isPersonSelected ? Theme.of(context).floatingActionButtonTheme.backgroundColor : Theme.of(context).disabledColor,
+      elevation: isPersonSelected ? 6 : 0,
       onPressed: () async {
+        if (!isPersonSelected) return;
         await showDialog(
           context: context,
           builder: (context) => ShoppingListCreatorDialog(),
@@ -300,7 +304,6 @@ class HomePageShoppingListGridItem extends ConsumerWidget {
                     direction: Axis.vertical,
                     clipBehavior: Clip.antiAlias,
                     children: shoppingList.participantEntries
-                        .take(4)
                         .map(
                           (entry) => ref.watch(personProvider(entry.participantId)).maybeWhen(
                                 orElse: () => Container(),
