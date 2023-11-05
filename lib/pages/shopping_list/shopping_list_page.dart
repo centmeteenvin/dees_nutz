@@ -86,7 +86,7 @@ class ShoppingListPageBody extends ConsumerWidget {
         // crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Flexible(
-            flex: 2,
+            flex: 4,
             child: Column(
               children: [
                 Expanded(child: Center(child: ShoppingListPageBodyImage(id))),
@@ -96,7 +96,7 @@ class ShoppingListPageBody extends ConsumerWidget {
           ),
           const SizedBox(width: 8.0),
           Expanded(
-            flex: 3,
+            flex: 5,
             child: ShoppingListPageItemListView(id),
           )
         ],

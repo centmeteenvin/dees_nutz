@@ -46,7 +46,7 @@ class ShoppingListPageItemListViewItem extends ConsumerWidget {
       orElse: () => Container(),
       data: (item) {
         final List<Widget> widgets = [
-          const Flexible(
+          const Expanded(
               child: Column(
             children: [
               CircleAvatar(
@@ -70,16 +70,24 @@ class ShoppingListPageItemListViewItem extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               Expanded(
-                  child: Text(
-                item.name,
-                style: Theme.of(context).textTheme.titleMedium,
-              )),
-              Expanded(child: Text("${item.price} €", textAlign: TextAlign.center)),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      item.name,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    Text("${item.price} €", textAlign: TextAlign.end),
+                  ],
+                ),
+              ),
               Expanded(
-                  child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: widgets,
-              )),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: widgets,
+                ),
+              ),
               IconButton(
                 onPressed: () async {
                   var createdItem = await ItemCreatorDialog.show(
