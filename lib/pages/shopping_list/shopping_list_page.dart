@@ -13,6 +13,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+final isMobileProvider = StateProvider<bool>((ref) => false,);
+
 final shoppingListPageScaffoldKeyProvider = Provider.autoDispose<GlobalKey<ScaffoldState>>(
   (ref) => GlobalKey<ScaffoldState>(),
 );
@@ -37,6 +39,7 @@ class ShoppingListPage extends ConsumerWidget {
       ),
       data: (data) => LayoutBuilder(builder: (context, constraints) {
         if (constraints.maxWidth >= 1000) {
+          Future(() => ref.read(isMobileProvider.notifier).state = false);
           return Scaffold(
             key: scaffoldKey,
             appBar: ShoppingListPageAppBarDesktop(id),
@@ -44,6 +47,8 @@ class ShoppingListPage extends ConsumerWidget {
             floatingActionButton: ShoppingListPageFloatingActionButton(id),
           );
         } else {
+          Future(() => ref.read(isMobileProvider.notifier).state = true);
+
           return Scaffold(
             key: scaffoldKey,
             appBar: ShoppingListPageAppBarMobile(id),
