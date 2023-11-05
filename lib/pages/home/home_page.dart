@@ -245,6 +245,7 @@ class HomePageShoppingListGrid extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentPersonId = ref.watch(currentSelectedPersonProviderId);
+    const itemWidth =250.0;
     if (currentPersonId == null) return const Text("Select a person");
     final shoppingListIds = ref.watch(personProvider(currentPersonId).select((value) => value.value?.shoppingListIds));
     if (shoppingListIds == null) return Container();
@@ -253,11 +254,16 @@ class HomePageShoppingListGrid extends ConsumerWidget {
       clipBehavior: Clip.antiAlias,
       scrollDirection: Axis.vertical,
       child: GridView.count(
-        crossAxisCount: 6,
+        crossAxisCount: MediaQuery.sizeOf(context).width ~/ itemWidth,
         childAspectRatio: 0.75,
         shrinkWrap: true,
         semanticChildCount: shoppingListIds.length,
-        children: shoppingListIds.map((id) => HomePageShoppingListGridItem(id)).toList(),
+        children: shoppingListIds
+            .map((id) => SizedBox(
+                  width: itemWidth,
+                  child: HomePageShoppingListGridItem(id),
+                ))
+            .toList(),
       ),
     );
   }
